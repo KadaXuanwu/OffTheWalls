@@ -72,11 +72,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Exclude everything but the _Projects folder in Assets
-/[Aa]ssets/*
-![Aa]ssets/_Project/
-![Aa]ssets/_Fmod/
-
 # Never ignore DLLs in the FMOD subfolder.
 !/[Aa]ssets/Plugins/FMOD/**/lib/*
 
