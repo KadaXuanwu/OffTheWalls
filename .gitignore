@@ -1,7 +1,6 @@
-# This .gitignore file should be placed at the root of your Unity project directory
-#
-# Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
-#
+# This .gitignore file should be placed in your Unity project root directory
+
+# Unity generated files
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
@@ -10,13 +9,11 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
-# MemoryCaptures can get excessive in size.
-# They also could contain extremely sensitive data
+# MemoryCaptures can get excessive in size
 /[Mm]emoryCaptures/
 
 # Recordings can get excessive in size
 /[Rr]ecordings/
-*.mp4
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
@@ -59,7 +56,7 @@ sysinfo.txt
 # Builds
 *.apk
 *.aab
-#*.unitypackage
+*.unitypackage
 *.app
 
 # Crashlytics generated file
@@ -72,22 +69,13 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Never ignore DLLs in the FMOD subfolder.
-!/[Aa]ssets/Plugins/FMOD/**/lib/*
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Don't ignore images and gizmos used by FMOD in the Unity Editor.
-!/[Aa]ssets/Gizmos/FMOD/*
-!/[Aa]ssets/Editor Default Resources/FMOD/*
-
-# Ignore the Cache folder since it is updated locally.
-/[Aa]ssets/Plugins/FMOD/Cache/*
-
-# Ignore bank files in the StreamingAssets folder.
-/[Aa]ssets/StreamingAssets/**/*.bank
-/[Aa]ssets/StreamingAssets/**/*.bank.meta
-
-# If the source bank files are kept outside of the StreamingAssets folder then these can be ignored.
-# Log files can be ignored.
-fmod_editor.log
-
-[Ll]ightmap*
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride

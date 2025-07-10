@@ -1,0 +1,43 @@
+asset CharacterSpec;
+
+input {
+    FPVector2 Direction;
+    FPVector2 MousePosition;
+    button Dash;
+    button Attack;
+    button SwitchWeapon;
+    button ShowTrajectory;
+}
+
+component PlayerLink {
+    PlayerRef Player;
+}
+
+component CharacterStats {
+    AssetRef<CharacterSpec> Spec;
+    FP CurrentHealth;
+    bool IsRegenerating;
+    bool SwitchWeaponPressedLastFrame;
+    
+    FP MaxAmmoMultiplier;
+    FP ReloadTimeMultiplier;
+    FP AttackCooldownMultiplier;
+}
+
+component WeaponInventory {
+    list<WeaponInstance> OwnedWeapons;
+    
+    WeaponInstance MainHandWeapon;
+    WeaponInstance OffHandWeapon;
+    
+    bool IsMainHandActive;
+}
+
+component Dashing {
+    int RemainingFrames;
+    FPVector2 Direction;
+}
+
+signal CharacterShoot(EntityRef owner);
+signal SwitchWeapon(entity_ref entity, int weaponIndex);
+signal ReloadWeapon(entity_ref entity);

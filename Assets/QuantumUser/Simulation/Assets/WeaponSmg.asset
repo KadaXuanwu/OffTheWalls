@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8896b5bc14baa7458a0efaa3028e9ea, type: 3}
+  m_Name: WeaponSmg
+  m_EditorClassIdentifier: 
+  Identifier:
+    Path: QuantumUser/Simulation/Assets/WeaponSmg
+    Guid:
+      Value: 381691186298320985
+  WeaponName: Smg
+  ProjectileSpec:
+    Id:
+      Value: 386534966343337972
+  MaxAmmo: 20
+  ReloadTime:
+    RawValue: 131072
+  AttackCooldown:
+    RawValue: 16384
+  WeaponSprite: {fileID: 21300000, guid: d990de03fe8c68745985fa624fe5d6ab, type: 3}
+  HandOffset: {x: 0, y: 0}
+  RotationOffset: 0
+  Scale: {x: 0.12, y: 0.12}

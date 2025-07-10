@@ -1,0 +1,16 @@
+struct WeaponInstance {
+    AssetRef<WeaponSpec> WeaponSpec;
+    int CurrentAmmo;
+    FP AttackCooldownRemaining;
+    FP ReloadTimeRemaining;
+}
+
+component Projectile {
+    FP TTL;
+    EntityRef Owner;
+    FP Damage;
+    AssetRef<ProjectileSpec> ProjectileType;
+    AssetRef<WeaponSpec> WeaponType;
+    FP Speed;
+    int BounceCount;
+}

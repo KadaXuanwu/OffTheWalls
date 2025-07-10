@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eb6f5ccf763d4a478776972d05c87c9, type: 3}
+  m_Name: ProjectileRifle
+  m_EditorClassIdentifier: 
+  Identifier:
+    Path: QuantumUser/Simulation/Assets/ProjectileRifle
+    Guid:
+      Value: 448203206584855075
+  ProjectilePrototype: {fileID: 3097001405596171208, guid: c6ec9f63e47be774eb579778500a9ec3, type: 3}
+  ProjectileSpeed:
+    RawValue: 2293760
+  ProjectileTTL:
+    RawValue: 655360
+  ProjectileDamage:
+    RawValue: 1638400
+  ShotOffset:
+    RawValue: 65536
+  MaxBounces: 3
