@@ -771,6 +771,8 @@ MonoBehaviour:
   maxTrajectoryPoints: 1000
   trajectoryUpdateInterval: 3
   maxRaycastsPerFrame: 50
+  baseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  redIncreasePerBounce: 0.1
 --- !u!120 &8877552409427461269
 LineRenderer:
   serializedVersion: 2
@@ -831,28 +833,19 @@ LineRenderer:
       - serializedVersion: 3
         time: 0
         value: 0.007
-        inSlope: -0.0070482767
-        outSlope: -0.0070482767
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.9931506
-      - serializedVersion: 3
-        time: 1
-        value: 0.003
-        inSlope: 0.002994872
-        outSlope: 0.002994872
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 1
-        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 0.8207309, b: 0, a: 1}
-      key1: {r: 0.6320754, g: 0.6320754, b: 0.6320754, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}

@@ -16,21 +16,33 @@ public class AmmoUIController : QuantumEntityViewComponent<CustomViewContext> {
     private CharacterStats _lastStats;
     private float _targetAlpha = 1f;
     private bool _isLocal;
+    private bool _uiInitialized = false;
 
     public override void OnActivate(Frame frame) {
         base.OnActivate(frame);
 
-        _ammoUIContext = Instantiate(ammoUIPrefab).GetComponent<AmmoUIContext>();
-
-        // Check if local player
+        // Check if local player FIRST before doing anything
         if (frame.TryGet<PlayerLink>(EntityRef, out PlayerLink playerLink)) {
             _isLocal = Game.PlayerIsLocal(playerLink.Player);
         }
 
+        // Only initialize UI for local player
+        if (_isLocal) {
+            InitializeUI();
+        }
+    }
+
+    private void InitializeUI() {
+        if (_uiInitialized || !_isLocal) return;
+
+        _ammoUIContext = Instantiate(ammoUIPrefab).GetComponent<AmmoUIContext>();
         SetupUI();
+        _uiInitialized = true;
     }
 
     private void SetupUI() {
+        if (_ammoUIContext == null) return;
+
         if (_ammoUIContext.ammoText != null) {
             _ammoUIContext.ammoText.color = ammoTextColor;
         }
@@ -44,11 +56,8 @@ public class AmmoUIController : QuantumEntityViewComponent<CustomViewContext> {
     public override void OnUpdateView() {
         base.OnUpdateView();
 
-        if (_ammoUIContext.ammoUI == null) return;
-
-        // Only show for local player
-        if (!_isLocal) {
-            SetVisibility(false);
+        // Early exit if not local player or UI not initialized
+        if (!_isLocal || !_uiInitialized || _ammoUIContext == null || _ammoUIContext.ammoUI == null) {
             return;
         }
 
@@ -193,7 +202,7 @@ public class AmmoUIController : QuantumEntityViewComponent<CustomViewContext> {
     }
 
     private void OnDestroy() {
-        if (_ammoUIContext.ammoUI != null) {
+        if (_ammoUIContext != null && _ammoUIContext.ammoUI != null) {
             Destroy(_ammoUIContext.ammoUI);
         }
     }

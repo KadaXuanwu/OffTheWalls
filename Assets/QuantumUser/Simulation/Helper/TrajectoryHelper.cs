@@ -174,6 +174,15 @@ namespace Quantum {
                 transform->Rotation = FPMath.Atan2(newStep.Direction.Y, newStep.Direction.X);
                 projectile->BounceCount = newStep.BounceCount;
 
+                // Scale damage linearly: +100% base damage per bounce
+                // We need to get the base damage from the projectile spec
+                if (!projectile->ProjectileType.Id.Equals(default)) {
+                    ProjectileSpec projectileSpec = frame.FindAsset(projectile->ProjectileType);
+                    if (projectileSpec != null) {
+                        projectile->Damage = projectileSpec.ProjectileDamage * (FP._1 + projectile->BounceCount);
+                    }
+                }
+
                 return true;
             }
 

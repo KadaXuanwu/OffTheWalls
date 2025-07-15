@@ -5,10 +5,10 @@ namespace Quantum {
 
     /// <summary>
     /// The <c>ProjectileSystem</c> class manages the lifecycle of projectiles,
-    /// including updating their time-to-live (TTL) and movement using unified trajectory logic.
+    /// including updating their time-to-live (TTL), movement, and handling bouncing using raycast prediction.
     /// </summary>
     [Preserve]
-    public unsafe class ProjectileSystem : SystemMainThreadFilter<ProjectileSystem.Filter>, ISignalCharacterShoot {
+    public unsafe class ProjectileSystem : SystemMainThreadFilter<ProjectileSystem.Filter>, ISignalCharacterShoot, ISignalOnCollision2D {
         /// <summary>
         /// The <c>Filter</c> struct represents the components required for the system's operations,
         /// including an entity reference and a pointer to its projectile component.
@@ -31,7 +31,7 @@ namespace Quantum {
         }
 
         /// <summary>
-        /// Updates TTL of projectiles and handles movement using unified trajectory system.
+        /// Updates TTL of projectiles, handles raycast-based movement and bouncing, and destroys them if TTL reaches zero.
         /// </summary>
         /// <param name="f">The game frame.</param>
         /// <param name="filter">The filter containing the entity and its projectile component.</param>
@@ -52,7 +52,7 @@ namespace Quantum {
                 }
             }
 
-            // Use unified trajectory helper for all projectile movement
+            // Use unified trajectory helper for projectile movement
             bool shouldContinue = TrajectoryHelper.PerformProjectileStep(
                 f,
                 filter.Entity,
@@ -66,7 +66,7 @@ namespace Quantum {
 
             if (!shouldContinue) {
                 if (hitCharacter && hitEntity != EntityRef.None) {
-                    // Handle character hit
+                    // Handle character hit with scaled damage
                     HandleCharacterHit(f, filter.Entity, hitEntity, filter.Projectile);
                 }
                 // Destroy projectile (either hit max bounces or hit character)
@@ -75,19 +75,86 @@ namespace Quantum {
         }
 
         /// <summary>
-        /// Handles collision with characters by applying damage.
+        /// Handles collision with characters using the same collision system for non-wall entities.
         /// </summary>
         /// <param name="f">The game frame.</param>
-        /// <param name="projectileEntity">The projectile entity.</param>
-        /// <param name="characterEntity">The character entity that was hit.</param>
-        /// <param name="projectile">Pointer to the projectile component.</param>
+        /// <param name="info">Collision information.</param>
+        public void OnCollision2D(Frame f, CollisionInfo2D info) {
+            // Only handle character collisions here, walls are handled by raycast
+            EntityRef projectileEntity = EntityRef.None;
+            EntityRef otherEntity = EntityRef.None;
+
+            if (f.Has<Projectile>(info.Entity)) {
+                projectileEntity = info.Entity;
+                otherEntity = info.Other;
+            }
+            else if (f.Has<Projectile>(info.Other)) {
+                projectileEntity = info.Other;
+                otherEntity = info.Entity;
+            }
+
+            if (projectileEntity == EntityRef.None || f.Has<Wall>(otherEntity)) {
+                return; // Skip walls (handled by raycast) and non-projectile collisions
+            }
+
+            Projectile* projectile = f.Unsafe.GetPointer<Projectile>(projectileEntity);
+
+            // Handle collision with characters only
+            HandleCharacterHit(f, projectileEntity, otherEntity, projectile);
+        }
+
+        /// <summary>
+        /// Handles bouncing off walls using deterministic raycast collision data.
+        /// </summary>
+        private void HandleWallBounce(Frame f, Filter filter, Quantum.Physics2D.Hit hit, FPVector2 projectileDirection) {
+            // Check bounce count limit (fallback to 3 if no spec available)
+            int maxBounces = 3;
+
+            // Try to get bounce limit from ProjectileSpec if available
+            if (!filter.Projectile->ProjectileType.Id.Equals(default)) {
+                ProjectileSpec projectileSpec = f.FindAsset(filter.Projectile->ProjectileType);
+                if (projectileSpec != null) {
+                    maxBounces = projectileSpec.MaxBounces;
+                }
+            }
+
+            if (filter.Projectile->BounceCount >= maxBounces) {
+                f.Destroy(filter.Entity);
+                return;
+            }
+
+            // Apply deterministic reflection using hit normal
+            FPVector2 reflectedDirection = projectileDirection - 2 * FPVector2.Dot(projectileDirection, hit.Normal) * hit.Normal;
+
+            // Update projectile position to hit point with small offset
+            FP wallOffsetDistance = FP._0_01;
+            filter.Transform->Position = hit.Point + hit.Normal * wallOffsetDistance;
+
+            // Update rotation to match reflected direction
+            filter.Transform->Rotation = FPMath.Atan2(reflectedDirection.Y, reflectedDirection.X);
+
+            filter.Projectile->BounceCount++;
+
+            // Scale damage linearly: +100% base damage per bounce
+            // We need to store the base damage to calculate correctly
+            if (!filter.Projectile->ProjectileType.Id.Equals(default)) {
+                ProjectileSpec projectileSpec = f.FindAsset(filter.Projectile->ProjectileType);
+                if (projectileSpec != null) {
+                    filter.Projectile->Damage = projectileSpec.ProjectileDamage * (FP._1 + filter.Projectile->BounceCount);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles collision with characters.
+        /// </summary>
         private void HandleCharacterHit(Frame f, EntityRef projectileEntity, EntityRef characterEntity, Projectile* projectile) {
             // Don't collide with the owner
             if (characterEntity == projectile->Owner) {
                 return;
             }
 
-            // Apply damage if the entity can take damage
+            // Apply scaled damage based on bounce count
             if (f.Unsafe.TryGetPointer<CharacterStats>(characterEntity, out CharacterStats* stats)) {
                 stats->CurrentHealth -= projectile->Damage;
 
@@ -96,6 +163,9 @@ namespace Quantum {
                     f.Destroy(characterEntity);
                 }
             }
+
+            // Destroy projectile after hitting a character
+            f.Destroy(projectileEntity);
         }
 
         /// <summary>
@@ -148,7 +218,7 @@ namespace Quantum {
             Projectile* projectile = f.Unsafe.GetPointer<Projectile>(projectileEntity);
             projectile->TTL = projectileSpec.ProjectileTTL;
             projectile->Owner = owner;
-            projectile->Damage = projectileSpec.ProjectileDamage;
+            projectile->Damage = projectileSpec.ProjectileDamage; // Base damage
             projectile->ProjectileType = weaponSpec.ProjectileSpec;
             projectile->WeaponType = activeWeapon.WeaponSpec;
             projectile->Speed = projectileSpec.ProjectileSpeed;
