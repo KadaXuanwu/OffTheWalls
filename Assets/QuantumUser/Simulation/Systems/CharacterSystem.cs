@@ -9,6 +9,8 @@ namespace Quantum {
     ISignalOnComponentAdded<CharacterStats>,
     ISignalOnComponentAdded<WeaponInventory> {
 
+        private const int WallLayerMask = 1 << 6; // Same as TrajectoryHelper
+
         public override void Update(Frame f, ref Filter filter) {
             CharacterSpec spec = f.FindAsset(filter.Stats->Spec);
 
@@ -86,12 +88,21 @@ namespace Quantum {
         private void UpdateCharacterShooting(Frame f, Filter filter, Input* input, CharacterSpec spec) {
             // Handle shooting logic
             if (input->Attack && WeaponHelper.CanShoot(f, filter.Entity)) {
-                // Consume ammo from the weapon instance
-                if (WeaponHelper.ConsumeAmmo(f, filter.Entity)) {
-                    WeaponHelper.SetAttackCooldown(f, filter.Entity, spec);
+                // Check if projectile spawn position would be inside a wall
+                if (CanSpawnProjectile(f, filter.Entity)) {
+                    // Consume ammo from the weapon instance
+                    if (WeaponHelper.ConsumeAmmo(f, filter.Entity)) {
+                        WeaponHelper.SetAttackCooldown(f, filter.Entity, spec);
 
-                    // Trigger shooting signal/event
-                    f.Signals.CharacterShoot(filter.Entity);
+                        // Trigger shooting signal/event
+                        f.Signals.CharacterShoot(filter.Entity);
+                    }
+                }
+                // If spawn position is blocked, still consume cooldown and ammo to prevent spam
+                else {
+                    if (WeaponHelper.ConsumeAmmo(f, filter.Entity)) {
+                        WeaponHelper.SetAttackCooldown(f, filter.Entity, spec);
+                    }
                 }
             }
 
@@ -103,6 +114,75 @@ namespace Quantum {
             }
 
             filter.Stats->SwitchWeaponPressedLastFrame = currentSwitch;
+        }
+
+        /// <summary>
+        /// Checks if a projectile can be spawned at the calculated position without being inside a wall.
+        /// Uses the same position calculation logic as ProjectileSystem.CharacterShoot.
+        /// </summary>
+        private bool CanSpawnProjectile(Frame f, EntityRef owner) {
+            if (!f.Unsafe.TryGetPointer<WeaponInventory>(owner, out WeaponInventory* weaponInventory)) {
+                return false;
+            }
+
+            if (!f.Unsafe.TryGetPointer<Transform2D>(owner, out Transform2D* ownerTransform)) {
+                return false;
+            }
+
+            WeaponInstance activeWeapon = weaponInventory->IsMainHandActive ?
+                weaponInventory->MainHandWeapon :
+                weaponInventory->OffHandWeapon;
+
+            if (activeWeapon.WeaponSpec.Id.Equals(default)) {
+                return false;
+            }
+
+            WeaponSpec weaponSpec = f.FindAsset(activeWeapon.WeaponSpec);
+            ProjectileSpec projectileSpec = f.FindAsset(weaponSpec.ProjectileSpec);
+
+            // Calculate spawn position using same logic as ProjectileSystem.CharacterShoot
+            FP adjustedRotation = ownerTransform->Rotation + FP.PiOver2;
+            FPVector2 forwardDirection = new FPVector2(
+                FPMath.Cos(adjustedRotation),
+                FPMath.Sin(adjustedRotation)
+            );
+
+            // Use same offset calculation as ProjectileSystem
+            FPVector2 baseOffset = weaponInventory->IsMainHandActive ?
+                new FPVector2(FP._0_50, -FP._0_50) :
+                new FPVector2(-FP._0_50, -FP._0_50);
+
+            FP characterRotation = ownerTransform->Rotation;
+            FPVector2 rotatedOffset = new FPVector2(
+                baseOffset.X * FPMath.Cos(characterRotation) - baseOffset.Y * FPMath.Sin(characterRotation),
+                baseOffset.X * FPMath.Sin(characterRotation) + baseOffset.Y * FPMath.Cos(characterRotation)
+            );
+
+            FPVector2 spawnPosition = ownerTransform->Position + forwardDirection * projectileSpec.ShotOffset + rotatedOffset;
+
+            // Raycast FROM character position TO spawn position to check for walls in between
+            FPVector2 directionToSpawn = spawnPosition - ownerTransform->Position;
+            FP distanceToSpawn = directionToSpawn.Magnitude;
+
+            if (distanceToSpawn <= FP._0) {
+                return true; // Spawn position is same as character position
+            }
+
+            FPVector2 normalizedDirection = directionToSpawn.Normalized;
+
+            var hit = f.Physics2D.Raycast(
+                ownerTransform->Position,
+                normalizedDirection,
+                distanceToSpawn,
+                WallLayerMask
+            );
+
+            // If we hit a wall between character and spawn position, prevent spawning
+            if (hit.HasValue && f.Has<Wall>(hit.Value.Entity)) {
+                return false;
+            }
+
+            return true;
         }
     }
 }
