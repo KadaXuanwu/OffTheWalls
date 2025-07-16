@@ -6,7 +6,7 @@ namespace Quantum {
     [Preserve]
     public unsafe class PlayerSpawnSystem : SystemMainThread, ISignalOnPlayerAdded {
         public override void Update(Frame f) {
-            
+
         }
 
         public void OnPlayerAdded(Frame f, PlayerRef player, bool firstTime) {
@@ -16,6 +16,16 @@ namespace Quantum {
             f.Add(entity, new PlayerLink {
                 Player = player
             });
+
+            // Add player stats component
+            f.Add(entity, new PlayerStats {
+                Kills = 0,
+                Deaths = 0,
+                Assists = 0
+            });
+
+            // Add damage tracker component
+            f.Add(entity, new DamageTracker());
 
             if (f.Unsafe.TryGetPointer<Transform2D>(entity, out Transform2D* transform)) {
                 transform->Position = new FPVector2(player * 2, 2);

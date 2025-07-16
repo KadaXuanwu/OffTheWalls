@@ -154,13 +154,22 @@ namespace Quantum {
                 return;
             }
 
-            // Apply scaled damage based on bounce count
+            // Apply damage if the entity can take damage
             if (f.Unsafe.TryGetPointer<CharacterStats>(characterEntity, out CharacterStats* stats)) {
+                FP previousHealth = stats->CurrentHealth;
                 stats->CurrentHealth -= projectile->Damage;
 
-                if (stats->CurrentHealth <= 0) {
-                    // Handle death
-                    f.Destroy(characterEntity);
+                // Record damage for assist tracking
+                DamageTrackingSystem.RecordDamage(f, characterEntity, projectile->Owner, projectile->Damage);
+
+                if (stats->CurrentHealth <= 0 && previousHealth > 0) {
+                    // Handle death - don't destroy the entity, just signal death
+                    DeathInfo deathInfo = new DeathInfo {
+                        Victim = characterEntity,
+                        Killer = projectile->Owner,
+                        WeaponUsed = projectile->WeaponType
+                    };
+                    f.Signals.OnPlayerDeath(deathInfo);
                 }
             }
 

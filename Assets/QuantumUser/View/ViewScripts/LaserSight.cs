@@ -114,6 +114,12 @@ public unsafe class LaserSight : QuantumEntityViewComponent<CustomViewContext> {
             return;
         }
 
+        // Hide laser sight if player is dead
+        if (PredictedFrame.Has<RespawnTimer>(EntityRef)) {
+            DisableLaser();
+            return;
+        }
+
         PlayerLink playerLink = PredictedFrame.Get<PlayerLink>(EntityRef);
         Quantum.Input* input = PredictedFrame.GetPlayerInput(playerLink.Player);
 

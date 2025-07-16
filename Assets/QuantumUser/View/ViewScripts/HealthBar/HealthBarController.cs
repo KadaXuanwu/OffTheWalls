@@ -24,6 +24,12 @@ public class HealthBarController : QuantumEntityViewComponent<CustomViewContext>
 
         if (_healthBarContext.healthBar == null) return;
 
+        // Hide health bar if player is dead (has respawn timer)
+        if (PredictedFrame.Has<RespawnTimer>(EntityRef)) {
+            SetVisibility(false);
+            return;
+        }
+
         if (!PredictedFrame.TryGet<CharacterStats>(EntityRef, out CharacterStats currentStats)) {
             return;
         }
@@ -81,7 +87,14 @@ public class HealthBarController : QuantumEntityViewComponent<CustomViewContext>
     }
 
     private void SetVisibility(bool visible) {
-        _targetAlpha = visible ? 1f : 0f;
+        // Force hide if dead
+        if (visible && PredictedFrame != null && PredictedFrame.Has<RespawnTimer>(EntityRef)) {
+            visible = false;
+        }
+
+        if (_healthBarContext.healthBar != null) {
+            _healthBarContext.healthBar.SetActive(visible);
+        }
     }
 
     private void UpdateFadeAnimation() {

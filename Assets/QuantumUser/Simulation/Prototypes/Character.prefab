@@ -320,6 +320,9 @@ GameObject:
   - component: {fileID: 5352160829153574947}
   - component: {fileID: 2025997617864732234}
   - component: {fileID: 2009895880242810545}
+  - component: {fileID: 7533301591278644981}
+  - component: {fileID: 8502408553348741898}
+  - component: {fileID: 4552211798209649761}
   - component: {fileID: 543850523175571132}
   - component: {fileID: 423150355316297188}
   - component: {fileID: 8877552409427461269}
@@ -737,6 +740,53 @@ MonoBehaviour:
   offHandTransform: {fileID: 8684743796652903909}
   mainHandWeaponRenderer: {fileID: 4772487752783584564}
   offHandWeaponRenderer: {fileID: 7555801302256676466}
+--- !u!114 &7533301591278644981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7074873124430423800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 458c267e529dc124a826264b4797402a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NewAssembly::CharacterVisibilityController
+  spritesToHide:
+  - {fileID: 1279150009074333507}
+  gameObjectsToHide:
+  - {fileID: 2086663756192431972}
+  fadeSpeed: 5
+--- !u!114 &8502408553348741898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7074873124430423800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6f853328e7dca842bee4e9ef5fbb540, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NewAssembly::DeathOverlayController
+  deathOverlayPrefab: {fileID: 2565615385471730200, guid: 1e38a90e1b7993544828b5c5c4ba8a0a, type: 3}
+  deathTextFormat: You were eliminated by {0}
+  respawnTextFormat: Respawning in {0:F1}
+--- !u!114 &4552211798209649761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7074873124430423800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1598b66944201a4cbd51f4096ea3b83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NewAssembly::StatsDisplayController
+  statsUIPrefab: {fileID: 4598997888670911567, guid: 670a55315dd24734dae1bcd8adaeedbd, type: 3}
+  anchorPosition: {x: 200, y: 10}
+  statsFormat: 'K: {0} / D: {1} / A: {2}'
 --- !u!114 &543850523175571132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -771,8 +821,6 @@ MonoBehaviour:
   maxTrajectoryPoints: 1000
   trajectoryUpdateInterval: 3
   maxRaycastsPerFrame: 50
-  baseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  redIncreasePerBounce: 0.1
 --- !u!120 &8877552409427461269
 LineRenderer:
   serializedVersion: 2

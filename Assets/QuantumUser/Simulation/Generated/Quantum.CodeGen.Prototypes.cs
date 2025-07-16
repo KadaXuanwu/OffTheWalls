@@ -77,6 +77,41 @@ namespace Quantum.Prototypes {
     }
   }
   [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.DamageRecord))]
+  public unsafe class DamageRecordPrototype : StructPrototype {
+    public MapEntityId Attacker;
+    public FP Damage;
+    public FP Timestamp;
+    public void Materialize(Frame frame, ref Quantum.DamageRecord result, in PrototypeMaterializationContext context = default) {
+        PrototypeValidator.FindMapEntity(this.Attacker, in context, out result.Attacker);
+        result.Damage = this.Damage;
+        result.Timestamp = this.Timestamp;
+    }
+  }
+  [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.DamageTracker))]
+  public unsafe class DamageTrackerPrototype : ComponentPrototype<Quantum.DamageTracker> {
+    [DynamicCollectionAttribute()]
+    public Quantum.Prototypes.DamageRecordPrototype[] RecentDamage = {};
+    public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
+        Quantum.DamageTracker component = default;
+        Materialize((Frame)f, ref component, in context);
+        return f.Set(entity, component) == SetResult.ComponentAdded;
+    }
+    public void Materialize(Frame frame, ref Quantum.DamageTracker result, in PrototypeMaterializationContext context = default) {
+        if (this.RecentDamage.Length == 0) {
+          result.RecentDamage = default;
+        } else {
+          var list = frame.AllocateList(out result.RecentDamage, this.RecentDamage.Length);
+          for (int i = 0; i < this.RecentDamage.Length; ++i) {
+            Quantum.DamageRecord tmp = default;
+            this.RecentDamage[i].Materialize(frame, ref tmp, in context);
+            list.Add(tmp);
+          }
+        }
+    }
+  }
+  [System.SerializableAttribute()]
   [Quantum.Prototypes.Prototype(typeof(Quantum.Dashing))]
   public unsafe partial class DashingPrototype : ComponentPrototype<Quantum.Dashing> {
     public Int32 RemainingFrames;
@@ -91,6 +126,18 @@ namespace Quantum.Prototypes {
         result.RemainingFrames = this.RemainingFrames;
         result.Direction = this.Direction;
         MaterializeUser(frame, ref result, in context);
+    }
+  }
+  [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.DeathInfo))]
+  public unsafe class DeathInfoPrototype : StructPrototype {
+    public MapEntityId Victim;
+    public MapEntityId Killer;
+    public AssetRef<WeaponSpec> WeaponUsed;
+    public void Materialize(Frame frame, ref Quantum.DeathInfo result, in PrototypeMaterializationContext context = default) {
+        PrototypeValidator.FindMapEntity(this.Victim, in context, out result.Victim);
+        PrototypeValidator.FindMapEntity(this.Killer, in context, out result.Killer);
+        result.WeaponUsed = this.WeaponUsed;
     }
   }
   [System.SerializableAttribute()]
@@ -129,6 +176,25 @@ namespace Quantum.Prototypes {
     }
   }
   [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.PlayerStats))]
+  public unsafe partial class PlayerStatsPrototype : ComponentPrototype<Quantum.PlayerStats> {
+    public Int32 Kills;
+    public Int32 Deaths;
+    public Int32 Assists;
+    partial void MaterializeUser(Frame frame, ref Quantum.PlayerStats result, in PrototypeMaterializationContext context);
+    public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
+        Quantum.PlayerStats component = default;
+        Materialize((Frame)f, ref component, in context);
+        return f.Set(entity, component) == SetResult.ComponentAdded;
+    }
+    public void Materialize(Frame frame, ref Quantum.PlayerStats result, in PrototypeMaterializationContext context = default) {
+        result.Kills = this.Kills;
+        result.Deaths = this.Deaths;
+        result.Assists = this.Assists;
+        MaterializeUser(frame, ref result, in context);
+    }
+  }
+  [System.SerializableAttribute()]
   [Quantum.Prototypes.Prototype(typeof(Quantum.Projectile))]
   public unsafe class ProjectilePrototype : ComponentPrototype<Quantum.Projectile> {
     public FP TTL;
@@ -151,6 +217,23 @@ namespace Quantum.Prototypes {
         result.WeaponType = this.WeaponType;
         result.Speed = this.Speed;
         result.BounceCount = this.BounceCount;
+    }
+  }
+  [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.RespawnTimer))]
+  public unsafe partial class RespawnTimerPrototype : ComponentPrototype<Quantum.RespawnTimer> {
+    public FP TimeRemaining;
+    public FP TotalRespawnTime;
+    partial void MaterializeUser(Frame frame, ref Quantum.RespawnTimer result, in PrototypeMaterializationContext context);
+    public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
+        Quantum.RespawnTimer component = default;
+        Materialize((Frame)f, ref component, in context);
+        return f.Set(entity, component) == SetResult.ComponentAdded;
+    }
+    public void Materialize(Frame frame, ref Quantum.RespawnTimer result, in PrototypeMaterializationContext context = default) {
+        result.TimeRemaining = this.TimeRemaining;
+        result.TotalRespawnTime = this.TotalRespawnTime;
+        MaterializeUser(frame, ref result, in context);
     }
   }
   [System.SerializableAttribute()]

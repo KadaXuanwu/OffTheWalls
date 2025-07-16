@@ -5,6 +5,10 @@ using UnityEngine;
 namespace Quantum {
     public unsafe class WeaponHelper {
         public static bool CanShoot(Frame f, EntityRef entity) {
+            if (f.Has<RespawnTimer>(entity)) {
+                return false;
+            }
+
             WeaponInstance* activeWeapon = GetActiveWeaponPointer(f, entity);
 
             if (activeWeapon == null || activeWeapon->WeaponSpec.Id.Equals(default)) {

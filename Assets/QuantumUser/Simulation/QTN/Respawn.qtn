@@ -1,0 +1,29 @@
+component RespawnTimer {
+    FP TimeRemaining;
+    FP TotalRespawnTime;
+}
+
+component PlayerStats {
+    int Kills;
+    int Deaths;
+    int Assists;
+}
+
+component DamageTracker {
+    list<DamageRecord> RecentDamage;
+}
+
+struct DamageRecord {
+    EntityRef Attacker;
+    FP Damage;
+    FP Timestamp;
+}
+
+struct DeathInfo {
+    EntityRef Victim;
+    EntityRef Killer;
+    AssetRef<WeaponSpec> WeaponUsed;
+}
+
+signal OnPlayerDeath(DeathInfo deathInfo);
+signal OnPlayerRespawn(entity_ref player);

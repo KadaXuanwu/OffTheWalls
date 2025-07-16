@@ -50,6 +50,48 @@ namespace Quantum.Prototypes.Unity {
   #endif //;
   
   [System.SerializableAttribute()]
+  public unsafe partial class DamageRecordPrototype : Quantum.QuantumUnityPrototypeAdapter<Quantum.Prototypes.DamageRecordPrototype> {
+    public Quantum.QuantumEntityPrototype Attacker;
+    public FP Damage;
+    public FP Timestamp;
+    partial void ConvertUser(Quantum.QuantumEntityPrototypeConverter converter, ref Quantum.Prototypes.DamageRecordPrototype prototype);
+    public override Quantum.Prototypes.DamageRecordPrototype Convert(Quantum.QuantumEntityPrototypeConverter converter) {
+      var result = new Quantum.Prototypes.DamageRecordPrototype();
+      converter.Convert(this.Attacker, out result.Attacker);
+      converter.Convert(this.Damage, out result.Damage);
+      converter.Convert(this.Timestamp, out result.Timestamp);
+      ConvertUser(converter, ref result);
+      return result;
+    }
+  }
+  [System.SerializableAttribute()]
+  public unsafe partial class DamageTrackerPrototype : Quantum.QuantumUnityPrototypeAdapter<Quantum.Prototypes.DamageTrackerPrototype> {
+    [DynamicCollectionAttribute()]
+    public Quantum.Prototypes.Unity.DamageRecordPrototype[] RecentDamage = {};
+    partial void ConvertUser(Quantum.QuantumEntityPrototypeConverter converter, ref Quantum.Prototypes.DamageTrackerPrototype prototype);
+    public override Quantum.Prototypes.DamageTrackerPrototype Convert(Quantum.QuantumEntityPrototypeConverter converter) {
+      var result = new Quantum.Prototypes.DamageTrackerPrototype();
+      converter.Convert(this.RecentDamage, out result.RecentDamage);
+      ConvertUser(converter, ref result);
+      return result;
+    }
+  }
+  [System.SerializableAttribute()]
+  public unsafe partial class DeathInfoPrototype : Quantum.QuantumUnityPrototypeAdapter<Quantum.Prototypes.DeathInfoPrototype> {
+    public Quantum.QuantumEntityPrototype Victim;
+    public Quantum.QuantumEntityPrototype Killer;
+    public AssetRef<WeaponSpec> WeaponUsed;
+    partial void ConvertUser(Quantum.QuantumEntityPrototypeConverter converter, ref Quantum.Prototypes.DeathInfoPrototype prototype);
+    public override Quantum.Prototypes.DeathInfoPrototype Convert(Quantum.QuantumEntityPrototypeConverter converter) {
+      var result = new Quantum.Prototypes.DeathInfoPrototype();
+      converter.Convert(this.Victim, out result.Victim);
+      converter.Convert(this.Killer, out result.Killer);
+      converter.Convert(this.WeaponUsed, out result.WeaponUsed);
+      ConvertUser(converter, ref result);
+      return result;
+    }
+  }
+  [System.SerializableAttribute()]
   public unsafe partial class ProjectilePrototype : Quantum.QuantumUnityPrototypeAdapter<Quantum.Prototypes.ProjectilePrototype> {
     public FP TTL;
     public Quantum.QuantumEntityPrototype Owner;
