@@ -49,12 +49,18 @@ namespace Quantum {
   using RuntimeInitializeOnLoadMethodAttribute = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
   #endif //;
   
+  public enum GamePhase : int {
+    Lobby,
+    Countdown,
+    Playing,
+  }
   [System.FlagsAttribute()]
   public enum InputButtons : int {
     Dash = 1 << 0,
     Attack = 1 << 1,
     SwitchWeapon = 1 << 2,
     ShowTrajectory = 1 << 3,
+    StartGame = 1 << 4,
   }
   public static unsafe partial class FlagsExtensions {
     public static Boolean IsFlagSet(this InputButtons self, InputButtons flag) {
@@ -567,20 +573,22 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct Input {
-    public const Int32 SIZE = 80;
+    public const Int32 SIZE = 96;
     public const Int32 ALIGNMENT = 8;
-    [FieldOffset(48)]
-    public FPVector2 Direction;
     [FieldOffset(64)]
+    public FPVector2 Direction;
+    [FieldOffset(80)]
     public FPVector2 MousePosition;
     [FieldOffset(12)]
     public Button Dash;
     [FieldOffset(0)]
     public Button Attack;
-    [FieldOffset(36)]
+    [FieldOffset(48)]
     public Button SwitchWeapon;
     [FieldOffset(24)]
     public Button ShowTrajectory;
+    [FieldOffset(36)]
+    public Button StartGame;
     public override Int32 GetHashCode() {
       unchecked { 
         var hash = 19249;
@@ -590,6 +598,7 @@ namespace Quantum {
         hash = hash * 31 + Attack.GetHashCode();
         hash = hash * 31 + SwitchWeapon.GetHashCode();
         hash = hash * 31 + ShowTrajectory.GetHashCode();
+        hash = hash * 31 + StartGame.GetHashCode();
         return hash;
       }
     }
@@ -602,6 +611,7 @@ namespace Quantum {
         case InputButtons.Attack: return Attack.IsDown;
         case InputButtons.SwitchWeapon: return SwitchWeapon.IsDown;
         case InputButtons.ShowTrajectory: return ShowTrajectory.IsDown;
+        case InputButtons.StartGame: return StartGame.IsDown;
         default: return false;
       }
     }
@@ -611,6 +621,7 @@ namespace Quantum {
         case InputButtons.Attack: return Attack.WasPressed;
         case InputButtons.SwitchWeapon: return SwitchWeapon.WasPressed;
         case InputButtons.ShowTrajectory: return ShowTrajectory.WasPressed;
+        case InputButtons.StartGame: return StartGame.WasPressed;
         default: return false;
       }
     }
@@ -619,6 +630,7 @@ namespace Quantum {
         Button.Serialize(&p->Attack, serializer);
         Button.Serialize(&p->Dash, serializer);
         Button.Serialize(&p->ShowTrajectory, serializer);
+        Button.Serialize(&p->StartGame, serializer);
         Button.Serialize(&p->SwitchWeapon, serializer);
         FPVector2.Serialize(&p->Direction, serializer);
         FPVector2.Serialize(&p->MousePosition, serializer);
@@ -656,7 +668,7 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct _globals_ {
-    public const Int32 SIZE = 1096;
+    public const Int32 SIZE = 1192;
     public const Int32 ALIGNMENT = 8;
     [FieldOffset(0)]
     public AssetRef<Map> Map;
@@ -680,12 +692,12 @@ namespace Quantum {
     public Int32 PlayerConnectedCount;
     [FieldOffset(608)]
     [FramePrinter.FixedArrayAttribute(typeof(Input), 6)]
-    private fixed Byte _input_[480];
-    [FieldOffset(1088)]
+    private fixed Byte _input_[576];
+    [FieldOffset(1184)]
     public BitSet6 PlayerLastConnectionState;
     public FixedArray<Input> input {
       get {
-        fixed (byte* p = _input_) { return new FixedArray<Input>(p, 80, 6); }
+        fixed (byte* p = _input_) { return new FixedArray<Input>(p, 96, 6); }
       }
     }
     public override Int32 GetHashCode() {
@@ -809,6 +821,36 @@ namespace Quantum {
         var p = (Dashing*)ptr;
         serializer.Stream.Serialize(&p->RemainingFrames);
         FPVector2.Serialize(&p->Direction, serializer);
+    }
+  }
+  [StructLayout(LayoutKind.Explicit)]
+  public unsafe partial struct GameState : Quantum.IComponentSingleton {
+    public const Int32 SIZE = 24;
+    public const Int32 ALIGNMENT = 8;
+    [FieldOffset(0)]
+    public GamePhase CurrentPhase;
+    [FieldOffset(16)]
+    public FP CountdownTimeRemaining;
+    [FieldOffset(4)]
+    public PlayerRef LobbyCreator;
+    [FieldOffset(8)]
+    public QBoolean CountdownActive;
+    public override Int32 GetHashCode() {
+      unchecked { 
+        var hash = 6701;
+        hash = hash * 31 + (Int32)CurrentPhase;
+        hash = hash * 31 + CountdownTimeRemaining.GetHashCode();
+        hash = hash * 31 + LobbyCreator.GetHashCode();
+        hash = hash * 31 + CountdownActive.GetHashCode();
+        return hash;
+      }
+    }
+    public static void Serialize(void* ptr, FrameSerializer serializer) {
+        var p = (GameState*)ptr;
+        serializer.Stream.Serialize((Int32*)&p->CurrentPhase);
+        PlayerRef.Serialize(&p->LobbyCreator, serializer);
+        QBoolean.Serialize(&p->CountdownActive, serializer);
+        FP.Serialize(&p->CountdownTimeRemaining, serializer);
     }
   }
   [StructLayout(LayoutKind.Explicit)]
@@ -1023,6 +1065,8 @@ namespace Quantum {
       BuildSignalsArrayOnComponentRemoved<Quantum.DamageTracker>();
       BuildSignalsArrayOnComponentAdded<Quantum.Dashing>();
       BuildSignalsArrayOnComponentRemoved<Quantum.Dashing>();
+      BuildSignalsArrayOnComponentAdded<Quantum.GameState>();
+      BuildSignalsArrayOnComponentRemoved<Quantum.GameState>();
       BuildSignalsArrayOnComponentAdded<MapEntityLink>();
       BuildSignalsArrayOnComponentRemoved<MapEntityLink>();
       BuildSignalsArrayOnComponentAdded<NavMeshAvoidanceAgent>();
@@ -1079,6 +1123,7 @@ namespace Quantum {
       i->Attack = i->Attack.Update(this.Number, input.Attack);
       i->SwitchWeapon = i->SwitchWeapon.Update(this.Number, input.SwitchWeapon);
       i->ShowTrajectory = i->ShowTrajectory.Update(this.Number, input.ShowTrajectory);
+      i->StartGame = i->StartGame.Update(this.Number, input.StartGame);
     }
     public Input* GetPlayerInput(PlayerRef player) {
       if ((int)player >= (int)_globals->input.Length) { throw new System.ArgumentOutOfRangeException("player"); }
@@ -1185,6 +1230,8 @@ namespace Quantum {
       typeRegistry.Register(typeof(FPVector3), FPVector3.SIZE);
       typeRegistry.Register(typeof(FrameMetaData), FrameMetaData.SIZE);
       typeRegistry.Register(typeof(FrameTimer), FrameTimer.SIZE);
+      typeRegistry.Register(typeof(Quantum.GamePhase), 4);
+      typeRegistry.Register(typeof(Quantum.GameState), Quantum.GameState.SIZE);
       typeRegistry.Register(typeof(HingeJoint), HingeJoint.SIZE);
       typeRegistry.Register(typeof(HingeJoint3D), HingeJoint3D.SIZE);
       typeRegistry.Register(typeof(Hit), Hit.SIZE);
@@ -1245,11 +1292,12 @@ namespace Quantum {
       typeRegistry.Register(typeof(Quantum._globals_), Quantum._globals_.SIZE);
     }
     static partial void InitComponentTypeIdGen() {
-      ComponentTypeId.Reset(ComponentTypeId.BuiltInComponentCount + 9)
+      ComponentTypeId.Reset(ComponentTypeId.BuiltInComponentCount + 10)
         .AddBuiltInComponents()
         .Add<Quantum.CharacterStats>(Quantum.CharacterStats.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.DamageTracker>(Quantum.DamageTracker.Serialize, null, Quantum.DamageTracker.OnRemoved, ComponentFlags.None)
         .Add<Quantum.Dashing>(Quantum.Dashing.Serialize, null, null, ComponentFlags.None)
+        .Add<Quantum.GameState>(Quantum.GameState.Serialize, null, null, ComponentFlags.Singleton)
         .Add<Quantum.PlayerLink>(Quantum.PlayerLink.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.PlayerStats>(Quantum.PlayerStats.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.Projectile>(Quantum.Projectile.Serialize, null, null, ComponentFlags.None)
@@ -1262,6 +1310,7 @@ namespace Quantum {
     public static void EnsureNotStrippedGen() {
       FramePrinter.EnsureNotStripped();
       FramePrinter.EnsurePrimitiveNotStripped<CallbackFlags>();
+      FramePrinter.EnsurePrimitiveNotStripped<Quantum.GamePhase>();
       FramePrinter.EnsurePrimitiveNotStripped<Quantum.InputButtons>();
       FramePrinter.EnsurePrimitiveNotStripped<QueryOptions>();
     }

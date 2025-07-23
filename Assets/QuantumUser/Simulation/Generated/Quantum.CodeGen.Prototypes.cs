@@ -141,6 +141,27 @@ namespace Quantum.Prototypes {
     }
   }
   [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.GameState))]
+  public unsafe partial class GameStatePrototype : ComponentPrototype<Quantum.GameState> {
+    public Quantum.QEnum32<GamePhase> CurrentPhase;
+    public FP CountdownTimeRemaining;
+    public PlayerRef LobbyCreator;
+    public QBoolean CountdownActive;
+    partial void MaterializeUser(Frame frame, ref Quantum.GameState result, in PrototypeMaterializationContext context);
+    public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
+        Quantum.GameState component = default;
+        Materialize((Frame)f, ref component, in context);
+        return f.Set(entity, component) == SetResult.ComponentAdded;
+    }
+    public void Materialize(Frame frame, ref Quantum.GameState result, in PrototypeMaterializationContext context = default) {
+        result.CurrentPhase = this.CurrentPhase;
+        result.CountdownTimeRemaining = this.CountdownTimeRemaining;
+        result.LobbyCreator = this.LobbyCreator;
+        result.CountdownActive = this.CountdownActive;
+        MaterializeUser(frame, ref result, in context);
+    }
+  }
+  [System.SerializableAttribute()]
   [Quantum.Prototypes.Prototype(typeof(Quantum.Input))]
   public unsafe partial class InputPrototype : StructPrototype {
     public FPVector2 Direction;
@@ -149,6 +170,7 @@ namespace Quantum.Prototypes {
     public Button Attack;
     public Button SwitchWeapon;
     public Button ShowTrajectory;
+    public Button StartGame;
     partial void MaterializeUser(Frame frame, ref Quantum.Input result, in PrototypeMaterializationContext context);
     public void Materialize(Frame frame, ref Quantum.Input result, in PrototypeMaterializationContext context = default) {
         result.Direction = this.Direction;
@@ -157,6 +179,7 @@ namespace Quantum.Prototypes {
         result.Attack = this.Attack;
         result.SwitchWeapon = this.SwitchWeapon;
         result.ShowTrajectory = this.ShowTrajectory;
+        result.StartGame = this.StartGame;
         MaterializeUser(frame, ref result, in context);
     }
   }

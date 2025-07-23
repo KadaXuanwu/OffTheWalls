@@ -1,0 +1,12 @@
+singleton component GameState {
+    GamePhase CurrentPhase;
+    FP CountdownTimeRemaining;
+    PlayerRef LobbyCreator;
+    bool CountdownActive;
+}
+
+enum GamePhase {
+    Lobby,
+    Countdown,
+    Playing
+}
