@@ -76,7 +76,6 @@ MonoBehaviour:
       - rid: 7752762179098771476
       - rid: 3114554777721110529
       - rid: 3114554777721110530
-      - rid: 1805242107343142912
   m_AssetVersion: 8
   m_ObsoleteDefaultVolumeProfile: {fileID: 0}
   m_RenderingLayerNames:
@@ -100,6 +99,8 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 1805242107343142912
       type: {class: RenderingDebuggerRuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:

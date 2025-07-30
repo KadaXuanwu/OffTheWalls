@@ -52,12 +52,25 @@ namespace Quantum {
                 }
             }
 
+            // Get bullet speed
+            FP effectiveSpeed = filter.Projectile->Speed;
+
+            // Get owner's character spec multipliers
+            CharacterSpec ownerCharacterSpec = null;
+            if (f.Unsafe.TryGetPointer<CharacterStats>(filter.Projectile->Owner, out CharacterStats* ownerStats)) {
+                ownerCharacterSpec = f.FindAsset(ownerStats->Spec);
+                if (ownerCharacterSpec != null) {
+                    maxBounces += ownerCharacterSpec.AdditionalBulletBounces;
+                    effectiveSpeed *= ownerCharacterSpec.BulletSpeedMultiplier;
+                }
+            }
+
             // Use unified trajectory helper for projectile movement
             bool shouldContinue = TrajectoryHelper.PerformProjectileStep(
                 f,
                 filter.Entity,
                 filter.Projectile->Owner,
-                filter.Projectile->Speed,
+                effectiveSpeed,
                 f.DeltaTime,
                 maxBounces,
                 out bool hitCharacter,
@@ -104,48 +117,6 @@ namespace Quantum {
         }
 
         /// <summary>
-        /// Handles bouncing off walls using deterministic raycast collision data.
-        /// </summary>
-        private void HandleWallBounce(Frame f, Filter filter, Quantum.Physics2D.Hit hit, FPVector2 projectileDirection) {
-            // Check bounce count limit (fallback to 3 if no spec available)
-            int maxBounces = 3;
-
-            // Try to get bounce limit from ProjectileSpec if available
-            if (!filter.Projectile->ProjectileType.Id.Equals(default)) {
-                ProjectileSpec projectileSpec = f.FindAsset(filter.Projectile->ProjectileType);
-                if (projectileSpec != null) {
-                    maxBounces = projectileSpec.MaxBounces;
-                }
-            }
-
-            if (filter.Projectile->BounceCount >= maxBounces) {
-                f.Destroy(filter.Entity);
-                return;
-            }
-
-            // Apply deterministic reflection using hit normal
-            FPVector2 reflectedDirection = projectileDirection - 2 * FPVector2.Dot(projectileDirection, hit.Normal) * hit.Normal;
-
-            // Update projectile position to hit point with small offset
-            FP wallOffsetDistance = FP._0_01;
-            filter.Transform->Position = hit.Point + hit.Normal * wallOffsetDistance;
-
-            // Update rotation to match reflected direction
-            filter.Transform->Rotation = FPMath.Atan2(reflectedDirection.Y, reflectedDirection.X);
-
-            filter.Projectile->BounceCount++;
-
-            // Scale damage linearly: +100% base damage per bounce
-            // We need to store the base damage to calculate correctly
-            if (!filter.Projectile->ProjectileType.Id.Equals(default)) {
-                ProjectileSpec projectileSpec = f.FindAsset(filter.Projectile->ProjectileType);
-                if (projectileSpec != null) {
-                    filter.Projectile->Damage = projectileSpec.ProjectileDamage * (FP._1 + filter.Projectile->BounceCount);
-                }
-            }
-        }
-
-        /// <summary>
         /// Handles collision with characters.
         /// </summary>
         private void HandleCharacterHit(Frame f, EntityRef projectileEntity, EntityRef characterEntity, Projectile* projectile) {
@@ -156,8 +127,20 @@ namespace Quantum {
 
             // Apply damage if the entity can take damage
             if (f.Unsafe.TryGetPointer<CharacterStats>(characterEntity, out CharacterStats* stats)) {
+                // Calculate damage with multipliers
+                FP finalDamage = projectile->Damage;
+                
+                // Apply owner's damage multiplier (only if owner still exists)
+                if (projectile->Owner != EntityRef.None && 
+                    f.Unsafe.TryGetPointer<CharacterStats>(projectile->Owner, out CharacterStats* ownerStats)) {
+                    CharacterSpec ownerSpec = f.FindAsset(ownerStats->Spec);
+                    if (ownerSpec != null) {
+                        finalDamage *= ownerSpec.DamageMultiplier;
+                    }
+                }
+
                 FP previousHealth = stats->CurrentHealth;
-                stats->CurrentHealth -= projectile->Damage;
+                stats->CurrentHealth -= finalDamage;
 
                 // Record damage for assist tracking
                 DamageTrackingSystem.RecordDamage(f, characterEntity, projectile->Owner, projectile->Damage);
