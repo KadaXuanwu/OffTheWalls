@@ -29,13 +29,19 @@ namespace Quantum {
         }
 
         public void OnAdded(Frame f, EntityRef entity, CharacterStats* component) {
+            // Initialize multipliers to 1
+            component->MaxAmmoMultiplier = FP._1;
+            component->ReloadTimeMultiplier = FP._1;
+            component->AttackCooldownMultiplier = FP._1;
+            component->MoveSpeedMultiplier = FP._1;
+            component->DamageMultiplier = FP._1;
+            component->MaxHealthMultiplier = FP._1;
+            component->BulletSpeedMultiplier = FP._1;
+            component->BounceDamageIncreaseMultiplier = FP._1;
+            component->AdditionalBulletBounces = 0;
+
             CharacterSpec spec = f.FindAsset(component->Spec);
-            // Apply max health multiplier
-            component->CurrentHealth = spec.MaxHealth * spec.MaxHealthMultiplier;
-            // Initialize multipliers from spec
-            component->MaxAmmoMultiplier = spec.MaxAmmoMultiplier;
-            component->ReloadTimeMultiplier = spec.ReloadTimeMultiplier;
-            component->AttackCooldownMultiplier = spec.AttackCooldownMultiplier;
+            component->CurrentHealth = spec.MaxHealth * component->MaxHealthMultiplier;
         }
 
         public void OnAdded(Frame f, EntityRef entity, WeaponInventory* component) {
@@ -77,10 +83,9 @@ namespace Quantum {
         private void UpdateCharacterStats(Frame f, Filter filter, CharacterSpec spec) {
             // Your existing stat updates (health regen, etc.)
             if (filter.Stats->IsRegenerating) {
-                FP maxHealthWithMultiplier = spec.MaxHealth * spec.MaxHealthMultiplier;
                 filter.Stats->CurrentHealth = FPMath.Min(
                     filter.Stats->CurrentHealth + spec.HealthRegenRate * f.DeltaTime,
-                    maxHealthWithMultiplier
+                    spec.MaxHealth * filter.Stats->MaxHealthMultiplier
                 );
             }
         }
@@ -90,7 +95,8 @@ namespace Quantum {
             if (input->Attack && WeaponHelper.CanShoot(f, filter.Entity)) {
                 // Consume ammo from the weapon instance
                 if (WeaponHelper.ConsumeAmmo(f, filter.Entity)) {
-                    WeaponHelper.SetAttackCooldown(f, filter.Entity, spec);
+                    // Use CharacterStats multipliers instead of spec
+                    WeaponHelper.SetAttackCooldown(f, filter.Entity, filter.Stats);
 
                     // Trigger shooting signal/event
                     f.Signals.CharacterShoot(filter.Entity);

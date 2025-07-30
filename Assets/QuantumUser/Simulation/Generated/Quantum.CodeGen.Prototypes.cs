@@ -59,6 +59,12 @@ namespace Quantum.Prototypes {
     public FP MaxAmmoMultiplier;
     public FP ReloadTimeMultiplier;
     public FP AttackCooldownMultiplier;
+    public FP MoveSpeedMultiplier;
+    public FP DamageMultiplier;
+    public FP MaxHealthMultiplier;
+    public FP BulletSpeedMultiplier;
+    public FP BounceDamageIncreaseMultiplier;
+    public Int32 AdditionalBulletBounces;
     partial void MaterializeUser(Frame frame, ref Quantum.CharacterStats result, in PrototypeMaterializationContext context);
     public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
         Quantum.CharacterStats component = default;
@@ -73,6 +79,12 @@ namespace Quantum.Prototypes {
         result.MaxAmmoMultiplier = this.MaxAmmoMultiplier;
         result.ReloadTimeMultiplier = this.ReloadTimeMultiplier;
         result.AttackCooldownMultiplier = this.AttackCooldownMultiplier;
+        result.MoveSpeedMultiplier = this.MoveSpeedMultiplier;
+        result.DamageMultiplier = this.DamageMultiplier;
+        result.MaxHealthMultiplier = this.MaxHealthMultiplier;
+        result.BulletSpeedMultiplier = this.BulletSpeedMultiplier;
+        result.BounceDamageIncreaseMultiplier = this.BounceDamageIncreaseMultiplier;
+        result.AdditionalBulletBounces = this.AdditionalBulletBounces;
         MaterializeUser(frame, ref result, in context);
     }
   }

@@ -22,6 +22,12 @@ component CharacterStats {
     FP MaxAmmoMultiplier;
     FP ReloadTimeMultiplier;
     FP AttackCooldownMultiplier;
+    FP MoveSpeedMultiplier;
+    FP DamageMultiplier;
+    FP MaxHealthMultiplier;
+    FP BulletSpeedMultiplier;
+    FP BounceDamageIncreaseMultiplier;
+    int AdditionalBulletBounces;
 }
 
 component WeaponInventory {

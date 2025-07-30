@@ -29,9 +29,7 @@ namespace Quantum {
                 // Complete reload when timer reaches zero
                 if (activeWeapon->ReloadTimeRemaining <= 0) {
                     WeaponSpec weaponSpec = f.FindAsset(activeWeapon->WeaponSpec);
-                    CharacterSpec characterSpec = f.FindAsset(filter.Stats->Spec);
-
-                    int maxAmmo = FPMath.RoundToInt(weaponSpec.MaxAmmo * characterSpec.MaxAmmoMultiplier);
+                    int maxAmmo = FPMath.RoundToInt(weaponSpec.MaxAmmo * filter.Stats->MaxAmmoMultiplier);
                     activeWeapon->CurrentAmmo = maxAmmo;
 
                     // Update in owned weapons list
@@ -76,15 +74,15 @@ namespace Quantum {
             }
 
             WeaponSpec weaponSpec = f.FindAsset(activeWeapon->WeaponSpec);
-            CharacterSpec characterSpec = f.FindAsset(f.Unsafe.GetPointer<CharacterStats>(entity)->Spec);
+            CharacterStats* characterStats = f.Unsafe.GetPointer<CharacterStats>(entity);
 
-            int maxAmmo = FPMath.RoundToInt(weaponSpec.MaxAmmo * characterSpec.MaxAmmoMultiplier);
+            int maxAmmo = FPMath.RoundToInt(weaponSpec.MaxAmmo * characterStats->MaxAmmoMultiplier);
             if (activeWeapon->CurrentAmmo >= maxAmmo) {
                 return;
             }
 
             // Start reload timer
-            FP reloadTime = weaponSpec.ReloadTime * characterSpec.ReloadTimeMultiplier;
+            FP reloadTime = weaponSpec.ReloadTime * characterStats->ReloadTimeMultiplier;
             activeWeapon->ReloadTimeRemaining = reloadTime;
 
             // Update in owned weapons list

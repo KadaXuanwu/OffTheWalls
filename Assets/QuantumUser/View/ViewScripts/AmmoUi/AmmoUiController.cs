@@ -110,8 +110,7 @@ public class AmmoUIController : QuantumEntityViewComponent<CustomViewContext> {
             return;
         }
 
-        CharacterSpec characterSpec = PredictedFrame.FindAsset(stats.Spec);
-        int maxAmmo = FPMath.RoundToInt(weaponSpec.MaxAmmo * characterSpec.MaxAmmoMultiplier);
+        int maxAmmo = FPMath.RoundToInt(weaponSpec.MaxAmmo * stats.MaxAmmoMultiplier);
 
         // Update ammo text
         if (_ammoUIContext.ammoText != null) {
@@ -146,9 +145,8 @@ public class AmmoUIController : QuantumEntityViewComponent<CustomViewContext> {
 
         if (weaponInstance.ReloadTimeRemaining > 0 && !weaponInstance.WeaponSpec.Id.Equals(default)) {
             WeaponSpec weaponSpec = PredictedFrame.FindAsset(weaponInstance.WeaponSpec);
-            CharacterSpec characterSpec = PredictedFrame.FindAsset(stats.Spec);
 
-            FP totalReloadTime = weaponSpec.ReloadTime * characterSpec.ReloadTimeMultiplier;
+            FP totalReloadTime = weaponSpec.ReloadTime * stats.ReloadTimeMultiplier;
             float reloadProgress = 1f - (weaponInstance.ReloadTimeRemaining / totalReloadTime).AsFloat;
 
             _ammoUIContext.reloadProgressFill.fillAmount = reloadProgress;

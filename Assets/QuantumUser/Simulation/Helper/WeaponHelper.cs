@@ -38,7 +38,7 @@ namespace Quantum {
             return true;
         }
 
-        public static void SetAttackCooldown(Frame f, EntityRef entity, CharacterSpec characterSpec) {
+        public static void SetAttackCooldown(Frame f, EntityRef entity, CharacterStats* characterStats) {
             WeaponInstance* activeWeapon = GetActiveWeaponPointer(f, entity);
 
             if (activeWeapon == null || activeWeapon->WeaponSpec.Id.Equals(default)) {
@@ -46,7 +46,7 @@ namespace Quantum {
             }
 
             WeaponSpec weaponSpec = f.FindAsset(activeWeapon->WeaponSpec);
-            FP cooldown = weaponSpec.AttackCooldown * characterSpec.AttackCooldownMultiplier;
+            FP cooldown = weaponSpec.AttackCooldown * characterStats->AttackCooldownMultiplier;
             activeWeapon->AttackCooldownRemaining = cooldown;
 
             // Update in owned weapons list
@@ -77,7 +77,7 @@ namespace Quantum {
             }
         }
 
-        public static FP GetEffectiveAttackCooldown(Frame f, EntityRef entity, CharacterSpec characterSpec) {
+        public static FP GetEffectiveAttackCooldown(Frame f, EntityRef entity, CharacterStats* characterStats) {
             WeaponInstance activeWeapon = GetActiveWeapon(f, entity);
 
             if (activeWeapon.WeaponSpec.Id.Equals(default)) {
@@ -85,7 +85,7 @@ namespace Quantum {
             }
 
             WeaponSpec weaponSpec = f.FindAsset(activeWeapon.WeaponSpec);
-            return weaponSpec.AttackCooldown * characterSpec.AttackCooldownMultiplier;
+            return weaponSpec.AttackCooldown * characterStats->AttackCooldownMultiplier;
         }
 
         public static int GetCurrentAmmo(Frame f, EntityRef entity) {
@@ -93,7 +93,7 @@ namespace Quantum {
             return activeWeapon.CurrentAmmo;
         }
 
-        public static int GetMaxAmmo(Frame f, EntityRef entity, CharacterSpec characterSpec) {
+        public static int GetMaxAmmo(Frame f, EntityRef entity, CharacterStats* characterStats) {
             WeaponInstance activeWeapon = GetActiveWeapon(f, entity);
 
             if (activeWeapon.WeaponSpec.Id.Equals(default)) {
@@ -101,10 +101,10 @@ namespace Quantum {
             }
 
             WeaponSpec weaponSpec = f.FindAsset(activeWeapon.WeaponSpec);
-            return FPMath.RoundToInt(weaponSpec.MaxAmmo * characterSpec.MaxAmmoMultiplier);
+            return FPMath.RoundToInt(weaponSpec.MaxAmmo * characterStats->MaxAmmoMultiplier);
         }
 
-        public static FP GetEffectiveReloadTime(Frame f, EntityRef entity, CharacterSpec characterSpec) {
+        public static FP GetEffectiveReloadTime(Frame f, EntityRef entity, CharacterStats characterStats) {
             WeaponInstance activeWeapon = GetActiveWeapon(f, entity);
 
             if (activeWeapon.WeaponSpec.Id.Equals(default)) {
@@ -112,7 +112,7 @@ namespace Quantum {
             }
 
             WeaponSpec weaponSpec = f.FindAsset(activeWeapon.WeaponSpec);
-            return weaponSpec.ReloadTime * characterSpec.ReloadTimeMultiplier;
+            return weaponSpec.ReloadTime * characterStats.ReloadTimeMultiplier;
         }
 
         public static WeaponSpec GetCurrentWeaponSpec(Frame f, EntityRef entity) {
@@ -140,7 +140,7 @@ namespace Quantum {
             return activeWeapon != null && activeWeapon->ReloadTimeRemaining > 0;
         }
 
-        public static FP GetReloadProgress(Frame f, EntityRef entity, CharacterSpec characterSpec) {
+        public static FP GetReloadProgress(Frame f, EntityRef entity, CharacterStats* characterStats) {
             WeaponInstance* activeWeapon = GetActiveWeaponPointer(f, entity);
 
             if (activeWeapon == null || activeWeapon->ReloadTimeRemaining <= 0) {
@@ -148,7 +148,7 @@ namespace Quantum {
             }
 
             WeaponSpec weaponSpec = f.FindAsset(activeWeapon->WeaponSpec);
-            FP totalReloadTime = weaponSpec.ReloadTime * characterSpec.ReloadTimeMultiplier;
+            FP totalReloadTime = weaponSpec.ReloadTime * characterStats->ReloadTimeMultiplier;
 
             return FP._1 - (activeWeapon->ReloadTimeRemaining / totalReloadTime);
         }

@@ -37,7 +37,7 @@ public class HealthBarController : QuantumEntityViewComponent<CustomViewContext>
         // Check if health changed
         if (HasHealthChanged(currentStats)) {
             CharacterSpec spec = PredictedFrame.FindAsset(currentStats.Spec);
-            UpdateHealthBar(currentStats.CurrentHealth, spec.MaxHealth);
+            UpdateHealthBar(currentStats.CurrentHealth, spec.MaxHealth * currentStats.MaxHealthMultiplier);
             _lastStats = currentStats;
         }
 

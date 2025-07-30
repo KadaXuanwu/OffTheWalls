@@ -31,7 +31,7 @@ namespace Quantum {
             // Reset health
             if (f.Unsafe.TryGetPointer<CharacterStats>(filter.Entity, out CharacterStats* stats)) {
                 CharacterSpec spec = f.FindAsset(stats->Spec);
-                stats->CurrentHealth = spec.MaxHealth;
+                stats->CurrentHealth = spec.MaxHealth * stats->MaxHealthMultiplier;
             }
 
             // Find a spawn point (you can customize this logic)

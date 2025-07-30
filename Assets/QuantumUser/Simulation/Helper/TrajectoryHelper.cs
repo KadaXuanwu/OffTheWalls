@@ -132,7 +132,7 @@ namespace Quantum {
         /// <summary>
         /// Performs single frame projectile step (ProjectileSystem)
         /// </summary>
-        public static bool PerformProjectileStep(Frame frame, EntityRef projectileEntity, EntityRef owner,
+        public static bool PerformProjectileStep(Frame frame, EntityRef projectileEntity, EntityRef owner, CharacterStats* characterStats,
             FP speed, FP deltaTime, int maxBounces, out bool hitCharacter, out EntityRef hitEntity) {
 
             hitCharacter = false;
@@ -179,7 +179,7 @@ namespace Quantum {
                 if (!projectile->ProjectileType.Id.Equals(default)) {
                     ProjectileSpec projectileSpec = frame.FindAsset(projectile->ProjectileType);
                     if (projectileSpec != null) {
-                        projectile->Damage = projectileSpec.ProjectileDamage * (FP._1 + projectile->BounceCount);
+                        projectile->Damage = projectileSpec.ProjectileDamage * ((FP._1 + projectile->BounceCount) * characterStats->BounceDamageIncreaseMultiplier * projectile->BounceCount);
                     }
                 }
 

@@ -10,19 +10,15 @@ namespace Quantum {
             var entity = filter.Entity;
 
             // Get character spec for move speed multiplier
-            CharacterSpec characterSpec = null;
-            if (f.Unsafe.TryGetPointer<CharacterStats>(entity, out CharacterStats* stats)) {
-                characterSpec = f.FindAsset(stats->Spec);
-            }
+            f.Unsafe.TryGetPointer<CharacterStats>(entity, out CharacterStats* stats);
 
             // Handle dashing
             if (f.TryGet(entity, out Dashing dash)) {
                 if (dash.RemainingFrames > 0) {
                     FP dashSpeed = 30;
                     // Apply move speed multiplier to dash as well
-                    if (characterSpec != null) {
-                        dashSpeed *= characterSpec.MoveSpeedMultiplier;
-                    }
+                    dashSpeed *= stats->MoveSpeedMultiplier;
+
                     filter.PhysicsBody->Velocity = dash.Direction * dashSpeed;
                     dash.RemainingFrames--;
                     f.Set(entity, dash);
@@ -50,9 +46,7 @@ namespace Quantum {
 
             // Movement with speed multiplier
             FP moveSpeed = FP._5;
-            if (characterSpec != null) {
-                moveSpeed *= characterSpec.MoveSpeedMultiplier;
-            }
+            moveSpeed *= stats->MoveSpeedMultiplier;
             filter.PhysicsBody->Velocity = direction * moveSpeed;
 
             if (input->MousePosition != FPVector2.Zero) {

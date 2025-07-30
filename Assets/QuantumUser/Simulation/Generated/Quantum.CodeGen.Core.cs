@@ -724,22 +724,34 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct CharacterStats : Quantum.IComponent {
-    public const Int32 SIZE = 48;
+    public const Int32 SIZE = 96;
     public const Int32 ALIGNMENT = 8;
-    [FieldOffset(8)]
-    public AssetRef<CharacterSpec> Spec;
-    [FieldOffset(24)]
-    public FP CurrentHealth;
-    [FieldOffset(0)]
-    public QBoolean IsRegenerating;
-    [FieldOffset(4)]
-    public QBoolean SwitchWeaponPressedLastFrame;
-    [FieldOffset(32)]
-    public FP MaxAmmoMultiplier;
-    [FieldOffset(40)]
-    public FP ReloadTimeMultiplier;
     [FieldOffset(16)]
+    public AssetRef<CharacterSpec> Spec;
+    [FieldOffset(48)]
+    public FP CurrentHealth;
+    [FieldOffset(4)]
+    public QBoolean IsRegenerating;
+    [FieldOffset(8)]
+    public QBoolean SwitchWeaponPressedLastFrame;
+    [FieldOffset(64)]
+    public FP MaxAmmoMultiplier;
+    [FieldOffset(88)]
+    public FP ReloadTimeMultiplier;
+    [FieldOffset(24)]
     public FP AttackCooldownMultiplier;
+    [FieldOffset(80)]
+    public FP MoveSpeedMultiplier;
+    [FieldOffset(56)]
+    public FP DamageMultiplier;
+    [FieldOffset(72)]
+    public FP MaxHealthMultiplier;
+    [FieldOffset(40)]
+    public FP BulletSpeedMultiplier;
+    [FieldOffset(32)]
+    public FP BounceDamageIncreaseMultiplier;
+    [FieldOffset(0)]
+    public Int32 AdditionalBulletBounces;
     public override Int32 GetHashCode() {
       unchecked { 
         var hash = 18671;
@@ -750,17 +762,29 @@ namespace Quantum {
         hash = hash * 31 + MaxAmmoMultiplier.GetHashCode();
         hash = hash * 31 + ReloadTimeMultiplier.GetHashCode();
         hash = hash * 31 + AttackCooldownMultiplier.GetHashCode();
+        hash = hash * 31 + MoveSpeedMultiplier.GetHashCode();
+        hash = hash * 31 + DamageMultiplier.GetHashCode();
+        hash = hash * 31 + MaxHealthMultiplier.GetHashCode();
+        hash = hash * 31 + BulletSpeedMultiplier.GetHashCode();
+        hash = hash * 31 + BounceDamageIncreaseMultiplier.GetHashCode();
+        hash = hash * 31 + AdditionalBulletBounces.GetHashCode();
         return hash;
       }
     }
     public static void Serialize(void* ptr, FrameSerializer serializer) {
         var p = (CharacterStats*)ptr;
+        serializer.Stream.Serialize(&p->AdditionalBulletBounces);
         QBoolean.Serialize(&p->IsRegenerating, serializer);
         QBoolean.Serialize(&p->SwitchWeaponPressedLastFrame, serializer);
         AssetRef.Serialize(&p->Spec, serializer);
         FP.Serialize(&p->AttackCooldownMultiplier, serializer);
+        FP.Serialize(&p->BounceDamageIncreaseMultiplier, serializer);
+        FP.Serialize(&p->BulletSpeedMultiplier, serializer);
         FP.Serialize(&p->CurrentHealth, serializer);
+        FP.Serialize(&p->DamageMultiplier, serializer);
         FP.Serialize(&p->MaxAmmoMultiplier, serializer);
+        FP.Serialize(&p->MaxHealthMultiplier, serializer);
+        FP.Serialize(&p->MoveSpeedMultiplier, serializer);
         FP.Serialize(&p->ReloadTimeMultiplier, serializer);
     }
   }

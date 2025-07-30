@@ -56,13 +56,9 @@ namespace Quantum {
             FP effectiveSpeed = filter.Projectile->Speed;
 
             // Get owner's character spec multipliers
-            CharacterSpec ownerCharacterSpec = null;
             if (f.Unsafe.TryGetPointer<CharacterStats>(filter.Projectile->Owner, out CharacterStats* ownerStats)) {
-                ownerCharacterSpec = f.FindAsset(ownerStats->Spec);
-                if (ownerCharacterSpec != null) {
-                    maxBounces += ownerCharacterSpec.AdditionalBulletBounces;
-                    effectiveSpeed *= ownerCharacterSpec.BulletSpeedMultiplier;
-                }
+                maxBounces += ownerStats->AdditionalBulletBounces;
+                effectiveSpeed *= ownerStats->BulletSpeedMultiplier;
             }
 
             // Use unified trajectory helper for projectile movement
@@ -70,6 +66,7 @@ namespace Quantum {
                 f,
                 filter.Entity,
                 filter.Projectile->Owner,
+                ownerStats,
                 effectiveSpeed,
                 f.DeltaTime,
                 maxBounces,
@@ -133,10 +130,7 @@ namespace Quantum {
                 // Apply owner's damage multiplier (only if owner still exists)
                 if (projectile->Owner != EntityRef.None && 
                     f.Unsafe.TryGetPointer<CharacterStats>(projectile->Owner, out CharacterStats* ownerStats)) {
-                    CharacterSpec ownerSpec = f.FindAsset(ownerStats->Spec);
-                    if (ownerSpec != null) {
-                        finalDamage *= ownerSpec.DamageMultiplier;
-                    }
+                    finalDamage *= ownerStats->DamageMultiplier;
                 }
 
                 FP previousHealth = stats->CurrentHealth;
