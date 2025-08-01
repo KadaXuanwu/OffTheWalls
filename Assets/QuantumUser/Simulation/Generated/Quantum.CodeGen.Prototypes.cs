@@ -56,6 +56,7 @@ namespace Quantum.Prototypes {
     public FP CurrentHealth;
     public QBoolean IsRegenerating;
     public QBoolean SwitchWeaponPressedLastFrame;
+    public FP DashCooldownRemaining;
     public FP MaxAmmoMultiplier;
     public FP ReloadTimeMultiplier;
     public FP AttackCooldownMultiplier;
@@ -76,6 +77,7 @@ namespace Quantum.Prototypes {
         result.CurrentHealth = this.CurrentHealth;
         result.IsRegenerating = this.IsRegenerating;
         result.SwitchWeaponPressedLastFrame = this.SwitchWeaponPressedLastFrame;
+        result.DashCooldownRemaining = this.DashCooldownRemaining;
         result.MaxAmmoMultiplier = this.MaxAmmoMultiplier;
         result.ReloadTimeMultiplier = this.ReloadTimeMultiplier;
         result.AttackCooldownMultiplier = this.AttackCooldownMultiplier;

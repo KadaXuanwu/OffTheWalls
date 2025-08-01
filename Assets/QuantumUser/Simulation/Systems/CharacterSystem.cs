@@ -39,6 +39,7 @@ namespace Quantum {
             component->BulletSpeedMultiplier = FP._1;
             component->BounceDamageIncreaseMultiplier = FP._1;
             component->AdditionalBulletBounces = 0;
+            component->DashCooldownRemaining = 0;
 
             CharacterSpec spec = f.FindAsset(component->Spec);
             component->CurrentHealth = spec.MaxHealth * component->MaxHealthMultiplier;

@@ -750,7 +750,7 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct CharacterStats : Quantum.IComponent {
-    public const Int32 SIZE = 96;
+    public const Int32 SIZE = 104;
     public const Int32 ALIGNMENT = 8;
     [FieldOffset(16)]
     public AssetRef<CharacterSpec> Spec;
@@ -761,16 +761,18 @@ namespace Quantum {
     [FieldOffset(8)]
     public QBoolean SwitchWeaponPressedLastFrame;
     [FieldOffset(64)]
+    public FP DashCooldownRemaining;
+    [FieldOffset(72)]
     public FP MaxAmmoMultiplier;
-    [FieldOffset(88)]
+    [FieldOffset(96)]
     public FP ReloadTimeMultiplier;
     [FieldOffset(24)]
     public FP AttackCooldownMultiplier;
-    [FieldOffset(80)]
+    [FieldOffset(88)]
     public FP MoveSpeedMultiplier;
     [FieldOffset(56)]
     public FP DamageMultiplier;
-    [FieldOffset(72)]
+    [FieldOffset(80)]
     public FP MaxHealthMultiplier;
     [FieldOffset(40)]
     public FP BulletSpeedMultiplier;
@@ -785,6 +787,7 @@ namespace Quantum {
         hash = hash * 31 + CurrentHealth.GetHashCode();
         hash = hash * 31 + IsRegenerating.GetHashCode();
         hash = hash * 31 + SwitchWeaponPressedLastFrame.GetHashCode();
+        hash = hash * 31 + DashCooldownRemaining.GetHashCode();
         hash = hash * 31 + MaxAmmoMultiplier.GetHashCode();
         hash = hash * 31 + ReloadTimeMultiplier.GetHashCode();
         hash = hash * 31 + AttackCooldownMultiplier.GetHashCode();
@@ -808,6 +811,7 @@ namespace Quantum {
         FP.Serialize(&p->BulletSpeedMultiplier, serializer);
         FP.Serialize(&p->CurrentHealth, serializer);
         FP.Serialize(&p->DamageMultiplier, serializer);
+        FP.Serialize(&p->DashCooldownRemaining, serializer);
         FP.Serialize(&p->MaxAmmoMultiplier, serializer);
         FP.Serialize(&p->MaxHealthMultiplier, serializer);
         FP.Serialize(&p->MoveSpeedMultiplier, serializer);

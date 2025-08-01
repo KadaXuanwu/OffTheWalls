@@ -20,9 +20,12 @@ MonoBehaviour:
     RawValue: 6553600
   HealthRegenRate:
     RawValue: 0
-  MaxAmmoMultiplier:
-    RawValue: 65536
-  ReloadTimeMultiplier:
-    RawValue: 65536
-  AttackCooldownMultiplier:
-    RawValue: 65536
+  DashCooldown:
+    RawValue: 196608
+  StartingWeapons: []
+  DefaultMainHandWeapon:
+    Id:
+      Value: 0
+  DefaultOffHandWeapon:
+    Id:
+      Value: 0

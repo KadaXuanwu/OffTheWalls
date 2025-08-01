@@ -19,7 +19,8 @@ component CharacterStats {
     FP CurrentHealth;
     bool IsRegenerating;
     bool SwitchWeaponPressedLastFrame;
-    
+    FP DashCooldownRemaining;
+
     FP MaxAmmoMultiplier;
     FP ReloadTimeMultiplier;
     FP AttackCooldownMultiplier;

@@ -6,11 +6,17 @@ namespace Quantum {
     public unsafe class MovementSystem : SystemMainThreadFilter<MovementSystem.Filter> {
 
         public override void Update(Frame f, ref Filter filter) {
-            var input = f.GetPlayerInput(filter.Link->Player);
-            var entity = filter.Entity;
+            Input* input = f.GetPlayerInput(filter.Link->Player);
+            EntityRef entity = filter.Entity;
 
-            // Get character spec for move speed multiplier
-            f.Unsafe.TryGetPointer<CharacterStats>(entity, out CharacterStats* stats);
+            // Get character spec for multipliers and cooldowns
+            CharacterStats* stats = f.Unsafe.GetPointer<CharacterStats>(entity);
+            CharacterSpec spec = f.FindAsset(stats->Spec);
+
+            // Update dash cooldown
+            if (stats->DashCooldownRemaining > 0) {
+                stats->DashCooldownRemaining -= f.DeltaTime;
+            }
 
             // Handle dashing
             if (f.TryGet(entity, out Dashing dash)) {
@@ -29,18 +35,24 @@ namespace Quantum {
                 }
             }
 
-            var direction = input->Direction;
+            FPVector2 direction = input->Direction;
             if (direction.Magnitude > 1) {
                 direction = direction.Normalized;
             }
 
-            // Handle dash input
-            if (input->Dash.WasPressed && direction.Magnitude > FP._0) {
+            // Handle dash input - check cooldown
+            if (input->Dash.WasPressed && 
+                direction.Magnitude > FP._0 && 
+                stats->DashCooldownRemaining <= 0) {
+                
                 Dashing newDash = new Dashing {
                     Direction = direction,
                     RemainingFrames = 5
                 };
                 f.Add(entity, newDash);
+                
+                // Set dash cooldown
+                stats->DashCooldownRemaining = spec.DashCooldown;
                 return;
             }
 
