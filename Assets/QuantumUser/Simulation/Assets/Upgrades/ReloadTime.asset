@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 233dae91a51cfd94a8572d65693e9a1d, type: 3}
+  m_Name: ReloadTime
+  m_EditorClassIdentifier: Quantum.Simulation::Quantum.UpgradeSpec
+  Identifier:
+    Path: QuantumUser/Simulation/Assets/Upgrades/ReloadTime
+    Guid:
+      Value: 462436399687637384
+  UpgradeName: Reload Time
+  Description: Pretty much the most useless upgrade out of all
+  UpgradeIcon: {fileID: 7935234321397735378, guid: b1505e4aa519d6141995a71fdffbf8bc, type: 3}
+  Type: 1
+  MultiplierValue:
+    RawValue: 52429
+  IntegerValue: 0
+  CanStack: 1
+  MaxStacks: 5

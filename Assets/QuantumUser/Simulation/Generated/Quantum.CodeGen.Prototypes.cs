@@ -207,6 +207,31 @@ namespace Quantum.Prototypes {
     }
   }
   [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.PlayerUpgrades))]
+  public unsafe partial class PlayerUpgradesPrototype : ComponentPrototype<Quantum.PlayerUpgrades> {
+    [DynamicCollectionAttribute()]
+    public Quantum.Prototypes.UpgradeRecordPrototype[] OwnedUpgrades = {};
+    partial void MaterializeUser(Frame frame, ref Quantum.PlayerUpgrades result, in PrototypeMaterializationContext context);
+    public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
+        Quantum.PlayerUpgrades component = default;
+        Materialize((Frame)f, ref component, in context);
+        return f.Set(entity, component) == SetResult.ComponentAdded;
+    }
+    public void Materialize(Frame frame, ref Quantum.PlayerUpgrades result, in PrototypeMaterializationContext context = default) {
+        if (this.OwnedUpgrades.Length == 0) {
+          result.OwnedUpgrades = default;
+        } else {
+          var list = frame.AllocateList(out result.OwnedUpgrades, this.OwnedUpgrades.Length);
+          for (int i = 0; i < this.OwnedUpgrades.Length; ++i) {
+            Quantum.UpgradeRecord tmp = default;
+            this.OwnedUpgrades[i].Materialize(frame, ref tmp, in context);
+            list.Add(tmp);
+          }
+        }
+        MaterializeUser(frame, ref result, in context);
+    }
+  }
+  [System.SerializableAttribute()]
   [Quantum.Prototypes.Prototype(typeof(Quantum.Projectile))]
   public unsafe class ProjectilePrototype : ComponentPrototype<Quantum.Projectile> {
     public FP TTL;
@@ -245,6 +270,18 @@ namespace Quantum.Prototypes {
     public void Materialize(Frame frame, ref Quantum.RespawnTimer result, in PrototypeMaterializationContext context = default) {
         result.TimeRemaining = this.TimeRemaining;
         result.TotalRespawnTime = this.TotalRespawnTime;
+        MaterializeUser(frame, ref result, in context);
+    }
+  }
+  [System.SerializableAttribute()]
+  [Quantum.Prototypes.Prototype(typeof(Quantum.UpgradeRecord))]
+  public unsafe partial class UpgradeRecordPrototype : StructPrototype {
+    public AssetRef<UpgradeSpec> UpgradeSpec;
+    public Int32 StackCount;
+    partial void MaterializeUser(Frame frame, ref Quantum.UpgradeRecord result, in PrototypeMaterializationContext context);
+    public void Materialize(Frame frame, ref Quantum.UpgradeRecord result, in PrototypeMaterializationContext context = default) {
+        result.UpgradeSpec = this.UpgradeSpec;
+        result.StackCount = this.StackCount;
         MaterializeUser(frame, ref result, in context);
     }
   }

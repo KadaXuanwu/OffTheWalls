@@ -1,5 +1,6 @@
 using Photon.Deterministic;
 using Quantum;
+using UnityEngine;
 
 namespace Quantum {
     public unsafe struct TrajectoryHitResult {
@@ -179,7 +180,7 @@ namespace Quantum {
                 if (!projectile->ProjectileType.Id.Equals(default)) {
                     ProjectileSpec projectileSpec = frame.FindAsset(projectile->ProjectileType);
                     if (projectileSpec != null) {
-                        projectile->Damage = projectileSpec.ProjectileDamage * ((FP._1 + projectile->BounceCount) * characterStats->BounceDamageIncreaseMultiplier * projectile->BounceCount);
+                        projectile->Damage = projectileSpec.ProjectileDamage * ((FP._1 + projectile->BounceCount) * ((characterStats->BounceDamageIncreaseMultiplier - 1) * projectile->BounceCount + 1));
                     }
                 }
 

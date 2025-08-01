@@ -776,6 +776,9 @@ MonoBehaviour:
     WeaponDatabase:
       Id:
         Value: 341783016739449153
+    UpgradeDatabase:
+      Id:
+        Value: 379545116494897282
   UseRandomSeed: 0
   SessionConfig: {fileID: 11400000, guid: 8ce0954c7793b514e8bf3d114fdbaf0c, type: 2}
   LocalPlayers:

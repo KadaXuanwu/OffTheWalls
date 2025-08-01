@@ -1,0 +1,11 @@
+component PlayerUpgrades {
+    list<UpgradeRecord> OwnedUpgrades;
+}
+
+struct UpgradeRecord {
+    AssetRef<UpgradeSpec> UpgradeSpec;
+    int StackCount;
+}
+
+signal OnUpgradeSelected(entity_ref player, AssetRef<UpgradeSpec> upgradeSpec);
+signal OnUpgradeOffered(entity_ref player, list<AssetRef<UpgradeSpec>> offeredUpgrades);

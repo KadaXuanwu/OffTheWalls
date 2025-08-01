@@ -31,7 +31,8 @@ public unsafe class LaserSight : QuantumEntityViewComponent<CustomViewContext> {
     private readonly FP _bounceExtension = 2;
     private readonly FP _adaptiveStepSize = FP._0_50; // Larger step for performance
     private readonly FP _wallOffsetDistance = FP._0_01;
-    private readonly int _maxBounces = 3;
+    
+    // REMOVED: private readonly int _maxBounces = 3; // This was the problem!
 
     // Cached physics filter
     private ContactFilter2D _wallContactFilter = new();
@@ -316,6 +317,14 @@ public unsafe class LaserSight : QuantumEntityViewComponent<CustomViewContext> {
         ProjectileSpec projectileSpec = QuantumRunner.Default.Game.Frames.Verified.FindAsset(weaponSpec.ProjectileSpec);
         if (projectileSpec == null) return 0;
 
+        // Calculate effective max bounces the same way ProjectileSystem does
+        int effectiveMaxBounces = projectileSpec.MaxBounces; // Base bounces from ProjectileSpec
+
+        // Add character's additional bounces
+        if (PredictedFrame.TryGet<CharacterStats>(EntityRef, out CharacterStats characterStats)) {
+            effectiveMaxBounces += characterStats.AdditionalBulletBounces;
+        }
+
         // Calculate starting position and direction
         FPVector2 characterPos = transform2D.Position;
         FP characterRotation = transform2D.Rotation;
@@ -338,7 +347,7 @@ public unsafe class LaserSight : QuantumEntityViewComponent<CustomViewContext> {
 
         FPVector2 startPos = characterPos + forwardDirection * projectileSpec.ShotOffset + rotatedOffset;
 
-        // Use the unified trajectory helper with bounce tracking
+        // Use the unified trajectory helper with the calculated effective max bounces
         return TraceTrajectoryWithBounceTracking(
             PredictedFrame,
             startPos,
@@ -347,7 +356,7 @@ public unsafe class LaserSight : QuantumEntityViewComponent<CustomViewContext> {
             _bounceSegments,
             _maxDistance,
             _adaptiveStepSize,
-            _maxBounces,
+            effectiveMaxBounces, // Use calculated effective max bounces instead of hardcoded value
             maxTrajectoryPoints
         );
     }

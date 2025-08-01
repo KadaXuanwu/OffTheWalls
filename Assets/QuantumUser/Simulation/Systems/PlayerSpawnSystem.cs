@@ -27,6 +27,9 @@ namespace Quantum {
             // Add damage tracker component
             f.Add(entity, new DamageTracker());
 
+            // Add player upgrades component
+            f.Add(entity, new PlayerUpgrades());
+
             if (f.Unsafe.TryGetPointer<Transform2D>(entity, out Transform2D* transform)) {
                 transform->Position = new FPVector2(player * 2, 2);
             }

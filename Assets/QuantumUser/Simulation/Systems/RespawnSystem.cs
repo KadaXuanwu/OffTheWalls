@@ -2,10 +2,12 @@ namespace Quantum {
     using Photon.Deterministic;
     using UnityEngine;
     using UnityEngine.Scripting;
+    using Quantum.Collections;
 
     [Preserve]
     public unsafe class RespawnSystem : SystemMainThreadFilter<RespawnSystem.Filter>,
-        ISignalOnPlayerDeath {
+        ISignalOnPlayerDeath,
+        ISignalOnUpgradeOffered {
 
         public struct Filter {
             public EntityRef Entity;
@@ -81,6 +83,9 @@ namespace Quantum {
                 if (f.Unsafe.TryGetPointer<PlayerStats>(deathInfo.Victim, out PlayerStats* victimStats)) {
                     victimStats->Deaths++;
                 }
+
+                // Offer upgrades to the dead player after a small delay
+                OfferUpgradesDelayed(f, deathInfo.Victim);
             }
 
             // Update killer stats
@@ -92,6 +97,16 @@ namespace Quantum {
 
             // Process assists
             ProcessAssists(f, deathInfo);
+        }
+
+        private void OfferUpgradesDelayed(Frame f, EntityRef player) {
+            // Offer upgrades immediately - the UI will handle the delay
+            UpgradeSystem.OfferUpgrades(f, player);
+        }
+
+        public unsafe void OnUpgradeOffered(Frame f, EntityRef player, QListPtr<AssetRef<UpgradeSpec>> offeredUpgrades) {
+            // This signal is handled by the View layer through the QuantumEntityViewComponent
+            // No callback conversion needed - the View will directly access the simulation data
         }
 
         private void ProcessAssists(Frame f, DeathInfo deathInfo) {

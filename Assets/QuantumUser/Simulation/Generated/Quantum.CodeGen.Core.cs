@@ -625,6 +625,28 @@ namespace Quantum {
     }
   }
   [StructLayout(LayoutKind.Explicit)]
+  public unsafe partial struct UpgradeRecord {
+    public const Int32 SIZE = 16;
+    public const Int32 ALIGNMENT = 8;
+    [FieldOffset(8)]
+    public AssetRef<UpgradeSpec> UpgradeSpec;
+    [FieldOffset(0)]
+    public Int32 StackCount;
+    public override Int32 GetHashCode() {
+      unchecked { 
+        var hash = 16691;
+        hash = hash * 31 + UpgradeSpec.GetHashCode();
+        hash = hash * 31 + StackCount.GetHashCode();
+        return hash;
+      }
+    }
+    public static void Serialize(void* ptr, FrameSerializer serializer) {
+        var p = (UpgradeRecord*)ptr;
+        serializer.Stream.Serialize(&p->StackCount);
+        AssetRef.Serialize(&p->UpgradeSpec, serializer);
+    }
+  }
+  [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct WeaponInstance {
     public const Int32 SIZE = 32;
     public const Int32 ALIGNMENT = 8;
@@ -880,6 +902,31 @@ namespace Quantum {
     }
   }
   [StructLayout(LayoutKind.Explicit)]
+  public unsafe partial struct PlayerUpgrades : Quantum.IComponent {
+    public const Int32 SIZE = 4;
+    public const Int32 ALIGNMENT = 4;
+    [FieldOffset(0)]
+    public QListPtr<UpgradeRecord> OwnedUpgrades;
+    public override Int32 GetHashCode() {
+      unchecked { 
+        var hash = 3209;
+        hash = hash * 31 + OwnedUpgrades.GetHashCode();
+        return hash;
+      }
+    }
+    public void ClearPointers(FrameBase f, EntityRef entity) {
+      OwnedUpgrades = default;
+    }
+    public static void OnRemoved(FrameBase frame, EntityRef entity, void* ptr) {
+      var p = (Quantum.PlayerUpgrades*)ptr;
+      p->ClearPointers((Frame)frame, entity);
+    }
+    public static void Serialize(void* ptr, FrameSerializer serializer) {
+        var p = (PlayerUpgrades*)ptr;
+        QList.Serialize(&p->OwnedUpgrades, serializer, Statics.SerializeUpgradeRecord);
+    }
+  }
+  [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct Projectile : Quantum.IComponent {
     public const Int32 SIZE = 56;
     public const Int32 ALIGNMENT = 8;
@@ -1011,6 +1058,12 @@ namespace Quantum {
   public unsafe partial interface ISignalOnPlayerRespawn : ISignal {
     void OnPlayerRespawn(Frame f, EntityRef player);
   }
+  public unsafe partial interface ISignalOnUpgradeSelected : ISignal {
+    void OnUpgradeSelected(Frame f, EntityRef player, AssetRef<UpgradeSpec> upgradeSpec);
+  }
+  public unsafe partial interface ISignalOnUpgradeOffered : ISignal {
+    void OnUpgradeOffered(Frame f, EntityRef player, QListPtr<AssetRef<UpgradeSpec>> offeredUpgrades);
+  }
   public static unsafe partial class Constants {
   }
   public unsafe partial class Frame {
@@ -1019,6 +1072,8 @@ namespace Quantum {
     private ISignalReloadWeapon[] _ISignalReloadWeaponSystems;
     private ISignalOnPlayerDeath[] _ISignalOnPlayerDeathSystems;
     private ISignalOnPlayerRespawn[] _ISignalOnPlayerRespawnSystems;
+    private ISignalOnUpgradeSelected[] _ISignalOnUpgradeSelectedSystems;
+    private ISignalOnUpgradeOffered[] _ISignalOnUpgradeOfferedSystems;
     partial void AllocGen() {
       _globals = (_globals_*)Context.Allocator.AllocAndClear(sizeof(_globals_));
     }
@@ -1035,6 +1090,8 @@ namespace Quantum {
       _ISignalReloadWeaponSystems = BuildSignalsArray<ISignalReloadWeapon>();
       _ISignalOnPlayerDeathSystems = BuildSignalsArray<ISignalOnPlayerDeath>();
       _ISignalOnPlayerRespawnSystems = BuildSignalsArray<ISignalOnPlayerRespawn>();
+      _ISignalOnUpgradeSelectedSystems = BuildSignalsArray<ISignalOnUpgradeSelected>();
+      _ISignalOnUpgradeOfferedSystems = BuildSignalsArray<ISignalOnUpgradeOffered>();
       _ComponentSignalsOnAdded = new ComponentReactiveCallbackInvoker[ComponentTypeId.Type.Length];
       _ComponentSignalsOnRemoved = new ComponentReactiveCallbackInvoker[ComponentTypeId.Type.Length];
       BuildSignalsArrayOnComponentAdded<CharacterController2D>();
@@ -1077,6 +1134,8 @@ namespace Quantum {
       BuildSignalsArrayOnComponentRemoved<Quantum.PlayerLink>();
       BuildSignalsArrayOnComponentAdded<Quantum.PlayerStats>();
       BuildSignalsArrayOnComponentRemoved<Quantum.PlayerStats>();
+      BuildSignalsArrayOnComponentAdded<Quantum.PlayerUpgrades>();
+      BuildSignalsArrayOnComponentRemoved<Quantum.PlayerUpgrades>();
       BuildSignalsArrayOnComponentAdded<Quantum.Projectile>();
       BuildSignalsArrayOnComponentRemoved<Quantum.Projectile>();
       BuildSignalsArrayOnComponentAdded<Quantum.RespawnTimer>();
@@ -1161,14 +1220,34 @@ namespace Quantum {
           }
         }
       }
+      public void OnUpgradeSelected(EntityRef player, AssetRef<UpgradeSpec> upgradeSpec) {
+        var array = _f._ISignalOnUpgradeSelectedSystems;
+        for (Int32 i = 0; i < array.Length; ++i) {
+          var s = array[i];
+          if (_f.SystemIsEnabledInHierarchy((SystemBase)s)) {
+            s.OnUpgradeSelected(_f, player, upgradeSpec);
+          }
+        }
+      }
+      public void OnUpgradeOffered(EntityRef player, QListPtr<AssetRef<UpgradeSpec>> offeredUpgrades) {
+        var array = _f._ISignalOnUpgradeOfferedSystems;
+        for (Int32 i = 0; i < array.Length; ++i) {
+          var s = array[i];
+          if (_f.SystemIsEnabledInHierarchy((SystemBase)s)) {
+            s.OnUpgradeOffered(_f, player, offeredUpgrades);
+          }
+        }
+      }
     }
   }
   public unsafe partial class Statics {
     public static FrameSerializer.Delegate SerializeDamageRecord;
+    public static FrameSerializer.Delegate SerializeUpgradeRecord;
     public static FrameSerializer.Delegate SerializeWeaponInstance;
     public static FrameSerializer.Delegate SerializeInput;
     static partial void InitStaticDelegatesGen() {
       SerializeDamageRecord = Quantum.DamageRecord.Serialize;
+      SerializeUpgradeRecord = Quantum.UpgradeRecord.Serialize;
       SerializeWeaponInstance = Quantum.WeaponInstance.Serialize;
       SerializeInput = Quantum.Input.Serialize;
     }
@@ -1248,6 +1327,7 @@ namespace Quantum {
       typeRegistry.Register(typeof(Quantum.PlayerLink), Quantum.PlayerLink.SIZE);
       typeRegistry.Register(typeof(PlayerRef), PlayerRef.SIZE);
       typeRegistry.Register(typeof(Quantum.PlayerStats), Quantum.PlayerStats.SIZE);
+      typeRegistry.Register(typeof(Quantum.PlayerUpgrades), Quantum.PlayerUpgrades.SIZE);
       typeRegistry.Register(typeof(Quantum.Projectile), Quantum.Projectile.SIZE);
       typeRegistry.Register(typeof(Ptr), Ptr.SIZE);
       typeRegistry.Register(typeof(QBoolean), QBoolean.SIZE);
@@ -1262,6 +1342,7 @@ namespace Quantum {
       typeRegistry.Register(typeof(Transform2D), Transform2D.SIZE);
       typeRegistry.Register(typeof(Transform2DVertical), Transform2DVertical.SIZE);
       typeRegistry.Register(typeof(Transform3D), Transform3D.SIZE);
+      typeRegistry.Register(typeof(Quantum.UpgradeRecord), Quantum.UpgradeRecord.SIZE);
       typeRegistry.Register(typeof(View), View.SIZE);
       typeRegistry.Register(typeof(Quantum.Wall), Quantum.Wall.SIZE);
       typeRegistry.Register(typeof(Quantum.WeaponInstance), Quantum.WeaponInstance.SIZE);
@@ -1269,13 +1350,14 @@ namespace Quantum {
       typeRegistry.Register(typeof(Quantum._globals_), Quantum._globals_.SIZE);
     }
     static partial void InitComponentTypeIdGen() {
-      ComponentTypeId.Reset(ComponentTypeId.BuiltInComponentCount + 9)
+      ComponentTypeId.Reset(ComponentTypeId.BuiltInComponentCount + 10)
         .AddBuiltInComponents()
         .Add<Quantum.CharacterStats>(Quantum.CharacterStats.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.DamageTracker>(Quantum.DamageTracker.Serialize, null, Quantum.DamageTracker.OnRemoved, ComponentFlags.None)
         .Add<Quantum.Dashing>(Quantum.Dashing.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.PlayerLink>(Quantum.PlayerLink.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.PlayerStats>(Quantum.PlayerStats.Serialize, null, null, ComponentFlags.None)
+        .Add<Quantum.PlayerUpgrades>(Quantum.PlayerUpgrades.Serialize, null, Quantum.PlayerUpgrades.OnRemoved, ComponentFlags.None)
         .Add<Quantum.Projectile>(Quantum.Projectile.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.RespawnTimer>(Quantum.RespawnTimer.Serialize, null, null, ComponentFlags.None)
         .Add<Quantum.Wall>(Quantum.Wall.Serialize, null, null, ComponentFlags.None)
