@@ -100,8 +100,24 @@ namespace Quantum {
         }
 
         private void OfferUpgradesDelayed(Frame f, EntityRef player) {
-            // Offer upgrades immediately - the UI will handle the delay
-            UpgradeSystem.OfferUpgrades(f, player);
+            if (!f.Unsafe.TryGetPointer<PlayerUpgrades>(player, out PlayerUpgrades* upgrades)) {
+                return;
+            }
+
+            UpgradeDatabase upgradeDB = f.FindAsset(f.RuntimeConfig.UpgradeDatabase);
+            if (upgradeDB == null) return;
+
+            var offers = f.ResolveList(upgrades->CurrentOffers);
+            offers.Clear();
+            
+            // Get 3 random upgrades
+            QList<AssetRef<UpgradeSpec>> randomOffers = upgradeDB.GetRandomUpgrades(f, 3);
+            for (int i = 0; i < randomOffers.Count; i++) {
+                offers.Add(randomOffers[i]);
+            }
+            
+            upgrades->HasPendingOffers = true;
+            f.FreeList<AssetRef<UpgradeSpec>>(randomOffers);
         }
 
         public unsafe void OnUpgradeOffered(Frame f, EntityRef player, QListPtr<AssetRef<UpgradeSpec>> offeredUpgrades) {

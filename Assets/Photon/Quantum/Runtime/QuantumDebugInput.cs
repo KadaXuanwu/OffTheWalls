@@ -5,6 +5,14 @@ namespace Quantum {
 
   public class QuantumDebugInput : MonoBehaviour {
     [SerializeField] private PlayerInput playerInput;
+    
+    // Add fields for upgrade selection
+    private int _pendingUpgradeSelection = -1;
+    private static QuantumDebugInput _instance;
+
+    private void Awake() {
+      _instance = this;
+    }
 
     private void OnEnable() {
       QuantumCallback.Subscribe(this, (CallbackPollInput callback) => PollInput(callback));
@@ -24,7 +32,20 @@ namespace Quantum {
       Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));
       i.MousePosition = new FPVector2(mouseWorldPos.x.ToFP(), mouseWorldPos.y.ToFP());
 
+      // Add upgrade selection
+      if (_pendingUpgradeSelection >= 0) {
+        i.SelectedUpgradeIndex = _pendingUpgradeSelection + 1; // +1 to distinguish from default 0
+        _pendingUpgradeSelection = -1; // Clear after sending
+      }
+
       callback.SetInput(i, DeterministicInputFlags.Repeatable);
+    }
+
+    // Public method to set upgrade selection
+    public static void SetUpgradeSelection(int upgradeIndex) {
+      if (_instance != null) {
+        _instance._pendingUpgradeSelection = upgradeIndex;
+      }
     }
   }
 }

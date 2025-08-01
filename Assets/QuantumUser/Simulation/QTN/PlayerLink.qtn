@@ -7,6 +7,7 @@ input {
     button Attack;
     button SwitchWeapon;
     button ShowTrajectory;
+    int SelectedUpgradeIndex;
 }
 
 component PlayerLink {

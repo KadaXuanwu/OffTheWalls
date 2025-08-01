@@ -29,6 +29,8 @@ namespace Quantum {
 
         public unsafe void OnAdded(Frame f, EntityRef entity, PlayerUpgrades* component) {
             component->OwnedUpgrades = f.AllocateList<UpgradeRecord>();
+            component->CurrentOffers = f.AllocateList<AssetRef<UpgradeSpec>>();
+            component->HasPendingOffers = false; 
         }
 
         private unsafe void ApplyUpgrade(Frame f, EntityRef player, CharacterStats* stats, UpgradeSpec upgrade) {

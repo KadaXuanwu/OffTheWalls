@@ -567,20 +567,22 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct Input {
-    public const Int32 SIZE = 80;
+    public const Int32 SIZE = 88;
     public const Int32 ALIGNMENT = 8;
-    [FieldOffset(48)]
+    [FieldOffset(56)]
     public FPVector2 Direction;
-    [FieldOffset(64)]
+    [FieldOffset(72)]
     public FPVector2 MousePosition;
-    [FieldOffset(12)]
+    [FieldOffset(16)]
     public Button Dash;
-    [FieldOffset(0)]
+    [FieldOffset(4)]
     public Button Attack;
-    [FieldOffset(36)]
+    [FieldOffset(40)]
     public Button SwitchWeapon;
-    [FieldOffset(24)]
+    [FieldOffset(28)]
     public Button ShowTrajectory;
+    [FieldOffset(0)]
+    public Int32 SelectedUpgradeIndex;
     public override Int32 GetHashCode() {
       unchecked { 
         var hash = 19249;
@@ -590,6 +592,7 @@ namespace Quantum {
         hash = hash * 31 + Attack.GetHashCode();
         hash = hash * 31 + SwitchWeapon.GetHashCode();
         hash = hash * 31 + ShowTrajectory.GetHashCode();
+        hash = hash * 31 + SelectedUpgradeIndex.GetHashCode();
         return hash;
       }
     }
@@ -616,6 +619,7 @@ namespace Quantum {
     }
     static partial void SerializeCodeGen(void* ptr, FrameSerializer serializer) {
         var p = (Input*)ptr;
+        serializer.Stream.Serialize(&p->SelectedUpgradeIndex);
         Button.Serialize(&p->Attack, serializer);
         Button.Serialize(&p->Dash, serializer);
         Button.Serialize(&p->ShowTrajectory, serializer);
@@ -678,7 +682,7 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct _globals_ {
-    public const Int32 SIZE = 1096;
+    public const Int32 SIZE = 1144;
     public const Int32 ALIGNMENT = 8;
     [FieldOffset(0)]
     public AssetRef<Map> Map;
@@ -702,12 +706,12 @@ namespace Quantum {
     public Int32 PlayerConnectedCount;
     [FieldOffset(608)]
     [FramePrinter.FixedArrayAttribute(typeof(Input), 6)]
-    private fixed Byte _input_[480];
-    [FieldOffset(1088)]
+    private fixed Byte _input_[528];
+    [FieldOffset(1136)]
     public BitSet6 PlayerLastConnectionState;
     public FixedArray<Input> input {
       get {
-        fixed (byte* p = _input_) { return new FixedArray<Input>(p, 80, 6); }
+        fixed (byte* p = _input_) { return new FixedArray<Input>(p, 88, 6); }
       }
     }
     public override Int32 GetHashCode() {
@@ -903,19 +907,26 @@ namespace Quantum {
   }
   [StructLayout(LayoutKind.Explicit)]
   public unsafe partial struct PlayerUpgrades : Quantum.IComponent {
-    public const Int32 SIZE = 4;
-    public const Int32 ALIGNMENT = 4;
-    [FieldOffset(0)]
+    public const Int32 SIZE = 16;
+    public const Int32 ALIGNMENT = 8;
+    [FieldOffset(12)]
     public QListPtr<UpgradeRecord> OwnedUpgrades;
+    [FieldOffset(8)]
+    public QListPtr<AssetRef<UpgradeSpec>> CurrentOffers;
+    [FieldOffset(0)]
+    public QBoolean HasPendingOffers;
     public override Int32 GetHashCode() {
       unchecked { 
         var hash = 3209;
         hash = hash * 31 + OwnedUpgrades.GetHashCode();
+        hash = hash * 31 + CurrentOffers.GetHashCode();
+        hash = hash * 31 + HasPendingOffers.GetHashCode();
         return hash;
       }
     }
     public void ClearPointers(FrameBase f, EntityRef entity) {
       OwnedUpgrades = default;
+      CurrentOffers = default;
     }
     public static void OnRemoved(FrameBase frame, EntityRef entity, void* ptr) {
       var p = (Quantum.PlayerUpgrades*)ptr;
@@ -923,6 +934,8 @@ namespace Quantum {
     }
     public static void Serialize(void* ptr, FrameSerializer serializer) {
         var p = (PlayerUpgrades*)ptr;
+        QBoolean.Serialize(&p->HasPendingOffers, serializer);
+        QList.Serialize(&p->CurrentOffers, serializer, Statics.SerializeAssetRef);
         QList.Serialize(&p->OwnedUpgrades, serializer, Statics.SerializeUpgradeRecord);
     }
   }
@@ -1162,6 +1175,7 @@ namespace Quantum {
       i->Attack = i->Attack.Update(this.Number, input.Attack);
       i->SwitchWeapon = i->SwitchWeapon.Update(this.Number, input.SwitchWeapon);
       i->ShowTrajectory = i->ShowTrajectory.Update(this.Number, input.ShowTrajectory);
+      i->SelectedUpgradeIndex = input.SelectedUpgradeIndex;
     }
     public Input* GetPlayerInput(PlayerRef player) {
       if ((int)player >= (int)_globals->input.Length) { throw new System.ArgumentOutOfRangeException("player"); }
@@ -1242,11 +1256,13 @@ namespace Quantum {
   }
   public unsafe partial class Statics {
     public static FrameSerializer.Delegate SerializeDamageRecord;
+    public static FrameSerializer.Delegate SerializeAssetRef;
     public static FrameSerializer.Delegate SerializeUpgradeRecord;
     public static FrameSerializer.Delegate SerializeWeaponInstance;
     public static FrameSerializer.Delegate SerializeInput;
     static partial void InitStaticDelegatesGen() {
       SerializeDamageRecord = Quantum.DamageRecord.Serialize;
+      SerializeAssetRef = AssetRef.Serialize;
       SerializeUpgradeRecord = Quantum.UpgradeRecord.Serialize;
       SerializeWeaponInstance = Quantum.WeaponInstance.Serialize;
       SerializeInput = Quantum.Input.Serialize;

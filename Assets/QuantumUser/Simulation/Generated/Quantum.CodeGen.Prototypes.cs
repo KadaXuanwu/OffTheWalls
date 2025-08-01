@@ -161,6 +161,7 @@ namespace Quantum.Prototypes {
     public Button Attack;
     public Button SwitchWeapon;
     public Button ShowTrajectory;
+    public Int32 SelectedUpgradeIndex;
     partial void MaterializeUser(Frame frame, ref Quantum.Input result, in PrototypeMaterializationContext context);
     public void Materialize(Frame frame, ref Quantum.Input result, in PrototypeMaterializationContext context = default) {
         result.Direction = this.Direction;
@@ -169,6 +170,7 @@ namespace Quantum.Prototypes {
         result.Attack = this.Attack;
         result.SwitchWeapon = this.SwitchWeapon;
         result.ShowTrajectory = this.ShowTrajectory;
+        result.SelectedUpgradeIndex = this.SelectedUpgradeIndex;
         MaterializeUser(frame, ref result, in context);
     }
   }
@@ -211,6 +213,9 @@ namespace Quantum.Prototypes {
   public unsafe partial class PlayerUpgradesPrototype : ComponentPrototype<Quantum.PlayerUpgrades> {
     [DynamicCollectionAttribute()]
     public Quantum.Prototypes.UpgradeRecordPrototype[] OwnedUpgrades = {};
+    [DynamicCollectionAttribute()]
+    public AssetRef<UpgradeSpec>[] CurrentOffers = {};
+    public QBoolean HasPendingOffers;
     partial void MaterializeUser(Frame frame, ref Quantum.PlayerUpgrades result, in PrototypeMaterializationContext context);
     public override Boolean AddToEntity(FrameBase f, EntityRef entity, in PrototypeMaterializationContext context) {
         Quantum.PlayerUpgrades component = default;
@@ -228,6 +233,17 @@ namespace Quantum.Prototypes {
             list.Add(tmp);
           }
         }
+        if (this.CurrentOffers.Length == 0) {
+          result.CurrentOffers = default;
+        } else {
+          var list = frame.AllocateList(out result.CurrentOffers, this.CurrentOffers.Length);
+          for (int i = 0; i < this.CurrentOffers.Length; ++i) {
+            AssetRef<UpgradeSpec> tmp = default;
+            tmp = this.CurrentOffers[i];
+            list.Add(tmp);
+          }
+        }
+        result.HasPendingOffers = this.HasPendingOffers;
         MaterializeUser(frame, ref result, in context);
     }
   }

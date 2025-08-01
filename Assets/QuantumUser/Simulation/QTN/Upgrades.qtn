@@ -1,5 +1,7 @@
 component PlayerUpgrades {
     list<UpgradeRecord> OwnedUpgrades;
+    list<AssetRef<UpgradeSpec>> CurrentOffers;
+    bool HasPendingOffers;
 }
 
 struct UpgradeRecord {
