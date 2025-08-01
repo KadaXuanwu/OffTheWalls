@@ -11,6 +11,8 @@ public unsafe class DeathOverlayController : QuantumEntityViewComponent<CustomVi
     private bool _isLocal;
     private bool _isDead;
     private bool _upgradesOffered;
+    private bool _upgradeSelected; // NEW: Track if upgrade was selected
+    private bool _respawnTimerExpired; // NEW: Track if respawn timer expired
     private string _killerName = "Unknown";
     private AssetRef<UpgradeSpec>[] _currentUpgradeOffers;
 
@@ -61,8 +63,11 @@ public unsafe class DeathOverlayController : QuantumEntityViewComponent<CustomVi
             OnDeath();
         }
         else if (!hasRespawnTimer && _isDead) {
-            // Just respawned
-            OnRespawn();
+            // Respawn timer expired, but only respawn if upgrade was selected
+            _respawnTimerExpired = true;
+            if (_upgradeSelected) {
+                OnRespawn();
+            }
         }
 
         // Update timer display if dead
@@ -70,12 +75,17 @@ public unsafe class DeathOverlayController : QuantumEntityViewComponent<CustomVi
             UpdateRespawnTimer(respawnTimer);
         }
 
-        // Check for offered upgrades (stored in a temporary component or signal)
+        // Check for offered upgrades
         CheckForUpgradeOffers();
+
+        // Handle case where upgrade was selected but respawn timer hasn't expired yet
+        if (_isDead && _upgradeSelected && _respawnTimerExpired) {
+            OnRespawn();
+        }
     }
 
     private void CheckForUpgradeOffers() {
-        if (_isDead && !_upgradesOffered && PredictedFrame != null) {
+        if (_isDead && !_upgradesOffered && !_upgradeSelected && PredictedFrame != null) {
             if (PredictedFrame.TryGet<PlayerUpgrades>(EntityRef, out PlayerUpgrades upgrades)) {
                 if (upgrades.HasPendingOffers) {
                     ShowUpgradeOptions();
@@ -149,24 +159,41 @@ public unsafe class DeathOverlayController : QuantumEntityViewComponent<CustomVi
     }
 
     private void OnUpgradeButtonClicked(int buttonIndex) {
-        if (!_upgradesOffered || _currentUpgradeOffers == null || buttonIndex >= _currentUpgradeOffers.Length) {
-            return;
+        if (!_upgradesOffered || _currentUpgradeOffers == null || buttonIndex >= _currentUpgradeOffers.Length || _upgradeSelected) {
+            return; // Prevent double-clicking
         }
 
         // Send upgrade selection through input
         QuantumDebugInput.SetUpgradeSelection(buttonIndex);
 
-        // Hide upgrade panel
+        // Hide upgrade panel immediately
         if (_deathOverlayContext.upgradePanel != null) {
             _deathOverlayContext.upgradePanel.SetActive(false);
         }
 
+        // Disable all upgrade buttons to prevent further clicks
+        if (_deathOverlayContext.upgradeButtons != null) {
+            for (int i = 0; i < _deathOverlayContext.upgradeButtons.Length; i++) {
+                if (_deathOverlayContext.upgradeButtons[i].button != null) {
+                    _deathOverlayContext.upgradeButtons[i].button.interactable = false;
+                }
+            }
+        }
+
         _upgradesOffered = false;
+        _upgradeSelected = true; // NEW: Mark upgrade as selected
+
+        // If respawn timer already expired, respawn immediately
+        if (_respawnTimerExpired) {
+            OnRespawn();
+        }
     }
 
     private void OnDeath() {
         _isDead = true;
         _upgradesOffered = false;
+        _upgradeSelected = false; // NEW: Reset upgrade selection state
+        _respawnTimerExpired = false; // NEW: Reset respawn timer state
 
         if (_deathOverlayContext.deathOverlay != null) {
             _deathOverlayContext.deathOverlay.SetActive(true);
@@ -183,6 +210,8 @@ public unsafe class DeathOverlayController : QuantumEntityViewComponent<CustomVi
     private void OnRespawn() {
         _isDead = false;
         _upgradesOffered = false;
+        _upgradeSelected = false; // NEW: Reset for next death
+        _respawnTimerExpired = false; // NEW: Reset for next death
         _currentUpgradeOffers = null;
 
         if (_deathOverlayContext.deathOverlay != null) {
@@ -199,7 +228,20 @@ public unsafe class DeathOverlayController : QuantumEntityViewComponent<CustomVi
     private void UpdateRespawnTimer(RespawnTimer respawnTimer) {
         if (_deathOverlayContext.respawnTimerText != null) {
             float timeRemaining = respawnTimer.TimeRemaining.AsFloat;
-            _deathOverlayContext.respawnTimerText.text = string.Format(respawnTextFormat, timeRemaining);
+            
+            // Show different message based on state
+            if (!_upgradeSelected && _upgradesOffered) {
+                _deathOverlayContext.respawnTimerText.text = "Select an upgrade to continue";
+            }
+            else if (_upgradeSelected && timeRemaining > 0) {
+                _deathOverlayContext.respawnTimerText.text = string.Format(respawnTextFormat, timeRemaining);
+            }
+            else if (_upgradeSelected && timeRemaining <= 0) {
+                _deathOverlayContext.respawnTimerText.text = "Respawning...";
+            }
+            else {
+                _deathOverlayContext.respawnTimerText.text = string.Format(respawnTextFormat, timeRemaining);
+            }
         }
     }
 

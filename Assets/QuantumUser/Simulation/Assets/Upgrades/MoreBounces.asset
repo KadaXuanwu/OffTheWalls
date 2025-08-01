@@ -22,7 +22,7 @@ MonoBehaviour:
   UpgradeIcon: {fileID: 7935234321397735378, guid: b1505e4aa519d6141995a71fdffbf8bc, type: 3}
   Type: 8
   MultiplierValue:
-    RawValue: 78643
-  IntegerValue: 0
+    RawValue: 0
+  IntegerValue: 1
   CanStack: 1
   MaxStacks: 5

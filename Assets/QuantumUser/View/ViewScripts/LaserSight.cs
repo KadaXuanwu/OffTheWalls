@@ -356,7 +356,7 @@ public unsafe class LaserSight : QuantumEntityViewComponent<CustomViewContext> {
             _bounceSegments,
             _maxDistance,
             _adaptiveStepSize,
-            effectiveMaxBounces, // Use calculated effective max bounces instead of hardcoded value
+            effectiveMaxBounces, // This was the bug - you were using a hardcoded value before
             maxTrajectoryPoints
         );
     }
