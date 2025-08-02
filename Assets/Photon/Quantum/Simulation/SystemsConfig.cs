@@ -25,7 +25,6 @@ namespace Quantum {
       /// <summary>
       /// System type name. Use typeof(SystemBase).FullName to get a valid name programmatically. E.g. Quantum.Core.SystemSignalsOnly.
       /// </summary>
-      [SerializableType(WarnIfNoPreserveAttribute = true)]
       public SerializableType<SystemBase> SystemType;
       /// <summary>
       /// Optional System name. If set, then the SystemType class needs to have a matching constructor.

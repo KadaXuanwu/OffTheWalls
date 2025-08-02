@@ -53,7 +53,7 @@
             </summary>
             <param name="path">Output path.</param>
         </member>
-        <member name="M:Quantum.Editor.QuantumUnityDBUtilities.IterateAssets">
+        <member name="M:Quantum.Editor.QuantumUnityDBUtilities.IterateAssets(System.String)">
             <summary>
             Enumerates <see cref="T:Quantum.AssetObject"/> assets with <see cref="F:Quantum.Editor.QuantumUnityDBUtilities.AssetLabel"/> label.
             </summary>
@@ -158,6 +158,14 @@
             Width of the foldout arrow
             </summary>
         </member>
+        <member name="T:Quantum.Editor.QuantumEditorHubPageSO">
+            <summary>
+            Collection of <see cref="T:Quantum.Editor.QuantumEditorHubPage"/>.
+            </summary>
+        </member>
+        <member name="F:Quantum.Editor.QuantumEditorHubPageSO.Content">
+            <summary/>
+        </member>
         <member name="M:Quantum.Editor.ReflectionUtils.GetMemberIncludingBaseTypes(System.Type,System.String,System.Reflection.BindingFlags,System.Type)">
             <summary>
               Returns the first found member of the given name. Includes private members.
@@ -224,6 +232,12 @@
         </member>
         <member name="P:Quantum.Editor.QuantumEditorHubWidget.HasTypeAndTypeIsValid">
             TODO: potentially slow 
+        </member>
+        <member name="T:Quantum.Editor.QuantumEditorHubWidgetType">
+            <summary/>
+        </member>
+        <member name="F:Quantum.Editor.QuantumEditorHubWidgetType.Value">
+            <summary/>
         </member>
         <member name="T:Quantum.Editor.QuantumEditorHubWindow">
             <summary>
@@ -297,6 +311,16 @@
             <summary>
             An editor class that renders a windows displaying assets from the Quantum DB.
             Open the windows by using Tools > Quantum > Window > Quantum Unity DB
+            </summary>
+        </member>
+        <member name="T:Quantum.Editor.QuantumEditorUPMTools">
+            <summary>
+            Tools to work with Unity Package Manager.
+            </summary>
+        </member>
+        <member name="M:Quantum.Editor.QuantumEditorUPMTools.ConvertToLocalPackages">
+            <summary>
+            Moves PhotonLibs, PhotonRealtime and Quantum folders into the project folder and adds them as local packages.
             </summary>
         </member>
         <member name="T:Quantum.Editor.QuantumAssetSourceFactoryAssetBundle">
@@ -451,6 +475,11 @@
             </summary>
             <param name="scenePath">Path to the scene</param>
             <param name="addToTop">Add the new scene to the top</param>
+        </member>
+        <member name="M:Quantum.Editor.QuantumEditorMenuCreateScene.AddStartUI">
+            <summary>
+            Add the connection mini menu to the current scene.
+            </summary>
         </member>
         <member name="T:Quantum.Editor.QuantumInstantReplayDemoEditor">
             <summary>
@@ -625,7 +654,7 @@
         </member>
         <member name="T:Quantum.Editor.IQuantumAssetSourceFactory">
             <summary>
-            A factory that creates <see cref="!:IQuantumAssetSource"/> instances for a given asset.
+            A factory that creates asset source instances for a given asset.
             </summary>
         </member>
         <member name="P:Quantum.Editor.IQuantumAssetSourceFactory.Order">
@@ -635,7 +664,7 @@
         </member>
         <member name="T:Quantum.Editor.QuantumAssetSourceFactoryContext">
             <summary>
-            A context object that is passed to <see cref="T:Quantum.Editor.IQuantumAssetSourceFactory"/> instances to create an <see cref="!:IQuantumAssetSource"/> instance.
+            A context object that is passed to <see cref="T:Quantum.Editor.IQuantumAssetSourceFactory"/> instances to create an asset source instance.
             </summary>
         </member>
         <member name="F:Quantum.Editor.QuantumAssetSourceFactoryContext.InstanceID">
@@ -723,6 +752,25 @@
             <summary>
             Creates <see cref="T:Quantum.QuantumAssetSourceAddressable`1"/> if the asset is an Addressable.
             </summary>
+        </member>
+        <member name="T:Quantum.Editor.QuantumMachineIdImporter">
+            <summary>
+            Assets ending with .quantum-id will be tried for a <see cref="T:Quantum.QuantumMachineId"/> script.
+            A local id is created for it that will not go into version control and is unique for every working copy.
+            </summary>
+        </member>
+        <member name="F:Quantum.Editor.QuantumMachineIdImporter.ReadableCharacters">
+            <summary>
+            A list of valid characters to generate unique readable ids.
+            </summary>
+        </member>
+        <member name="F:Quantum.Editor.QuantumMachineIdImporter.RandomDataLength">
+            <summary>
+            The number of bytes to store to randomly generate ids.
+            </summary>
+        </member>
+        <member name="M:Quantum.Editor.QuantumMachineIdImporter.OnImportAsset(UnityEditor.AssetImporters.AssetImportContext)">
+            <inheritdoc/>
         </member>
         <member name="T:Quantum.Editor.QuantumEditorMenuCustomPlugin">
             <summary>
@@ -1175,6 +1223,37 @@
             <param name="initialHash"></param>
             <returns></returns>
         </member>
+        <member name="T:Quantum.Editor.QuantumCustomDependency">
+            <summary>
+            A wrapper around Unity's custom dependencies. Allows refresh to be deferred (if circumstances permit) and works around issues with custom dependencies in MPPM.
+            </summary>
+        </member>
+        <member name="F:Quantum.Editor.QuantumCustomDependency.Name">
+            <summary>
+            Name of the dependency.
+            </summary>
+        </member>
+        <member name="F:Quantum.Editor.QuantumCustomDependency.IsGlobalImmediateRefreshEnabled">
+            <summary>
+            Global force immediate switch. Set to true to force all the refreshes to be synchronous.
+            </summary>
+        </member>
+        <member name="M:Quantum.Editor.QuantumCustomDependency.#ctor(System.String,System.Func{System.Nullable{UnityEngine.Hash128}})">
+            <param name="name">Name of the dependency</param>
+            <param name="getter">Hash value getter. If returns null, the dependency will not be updated.</param>
+        </member>
+        <member name="M:Quantum.Editor.QuantumCustomDependency.Refresh(System.Boolean)">
+             <summary>
+             Refreshes the dependency. Under normal circumstances, this will enqueue the operation until the next <see cref="F:UnityEditor.EditorApplication.delayCall"/>.
+             The hash will be calculated immediately if any of these is true:
+             - <paramref name="forceImmediate"/>
+             - <see cref="F:Quantum.Editor.QuantumCustomDependency.IsGlobalImmediateRefreshEnabled"/>
+             - <see cref="P:UnityEngine.Application.isBatchMode"/>
+            
+             Note that if <see cref="M:UnityEditor.AssetDatabase.IsAssetImportWorkerProcess"/> returns true, the immediate refresh will result with an error.
+             </summary>
+             <param name="forceImmediate"></param>
+        </member>
         <member name="T:Quantum.Editor.QuantumEditor">
             <summary>
             Base class for all Photon Common editors. Supports <see cref="T:Quantum.EditorButtonAttribute"/> and <see cref="T:Quantum.ScriptHelpAttribute"/>.
@@ -1277,6 +1356,11 @@
         <member name="F:Quantum.Editor.QuantumEditorMenuPriority.Window">
             <summary>
             Select windows.
+            </summary>
+        </member>
+        <member name="F:Quantum.Editor.QuantumEditorMenuPriority.SECTION_2">
+            <summary>
+            Generic section 2
             </summary>
         </member>
         <member name="F:Quantum.Editor.QuantumEditorMenuPriority.Bake">

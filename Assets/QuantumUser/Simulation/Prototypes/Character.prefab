@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2800690961251941284}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Weapons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8684743796652903909}
   - component: {fileID: 7555801302256676466}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: OffHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -133,7 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1100263876143501586}
   - component: {fileID: 4772487752783584564}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: MainHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -223,7 +223,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7002566166445876304}
   - component: {fileID: 1279150009074333507}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -326,7 +326,7 @@ GameObject:
   - component: {fileID: 543850523175571132}
   - component: {fileID: 423150355316297188}
   - component: {fileID: 8877552409427461269}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Character
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -442,7 +442,7 @@ MonoBehaviour:
       IsPersistent: 1
       CompoundShapes: []
     LayerSource: 0
-    Layer: 0
+    Layer: 8
     CallbackFlags:
       Value: 0
   PhysicsBody:
@@ -655,12 +655,25 @@ MonoBehaviour:
       Value: 0
     SwitchWeaponPressedLastFrame:
       Value: 0
+    DashCooldownRemaining:
+      RawValue: 0
     MaxAmmoMultiplier:
       RawValue: 0
     ReloadTimeMultiplier:
       RawValue: 0
     AttackCooldownMultiplier:
       RawValue: 0
+    MoveSpeedMultiplier:
+      RawValue: 0
+    DamageMultiplier:
+      RawValue: 0
+    MaxHealthMultiplier:
+      RawValue: 0
+    BulletSpeedMultiplier:
+      RawValue: 0
+    BounceDamageIncreaseMultiplier:
+      RawValue: 0
+    AdditionalBulletBounces: 0
 --- !u!114 &-41317710147546281
 MonoBehaviour:
   m_ObjectHideFlags: 0

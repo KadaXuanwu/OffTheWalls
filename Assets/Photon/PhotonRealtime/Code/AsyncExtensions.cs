@@ -91,7 +91,7 @@ namespace Photon.Realtime
         /// <param name="client">Client.</param>
         /// <param name="appSettings">App settings.</param>
         /// <param name="config">Optional AsyncConfig, otherwise AsyncConfig.Global is used.</param>
-        /// <returns>When connected to master server callback was called.</returns>
+        /// <returns>When connected to master server callback was called. Continues immediately if the client is connected to the Master Server (then no AppSettings are changed).</returns>
         /// <exception cref="DisconnectException">Is thrown when the connection is terminated.</exception>
         /// <exception cref="AuthenticationFailedException">Is thrown when the authentication failed.</exception>
         /// <exception cref="OperationStartException">Is thrown when the operation could not be started.</exception>
@@ -100,6 +100,11 @@ namespace Photon.Realtime
         /// <exception cref="OperationCanceledException">Is thrown when the operation have been canceled (AsyncConfig.CancellationSource).</exception>
         public static Task ConnectUsingSettingsAsync(this RealtimeClient client, AppSettings appSettings, AsyncConfig config = null)
         {
+            if (client.IsConnectedAndReady && client.Server == ServerConnection.MasterServer)
+            {
+                return Task.CompletedTask;
+            }
+
             return config.Resolve().TaskFactory.StartNew(() =>
             {
                 if (client.State != ClientState.Disconnected && client.State != ClientState.PeerCreated)
@@ -127,6 +132,7 @@ namespace Photon.Realtime
         /// Runs reconnect and rejoin.
         /// </summary>
         /// <param name="client">Client object should be in Disconnected state.</param>
+        /// <param name="ticket">Optional Matchmaking Ticket.</param>
         /// <param name="throwOnError">Set ErrorCode as result on RoomJoinFailed.</param>
         /// <param name="config">Optional AsyncConfig, otherwise AsyncConfig.Global is used.</param>
         /// <returns>Returns when inside the room or error</returns>
@@ -135,7 +141,7 @@ namespace Photon.Realtime
         /// <exception cref="OperationException">Is thrown when the operation completed unsuccessfully.</exception>
         /// <exception cref="OperationTimeoutException">Is thrown when the operation timed out.</exception>
         /// <exception cref="OperationCanceledException">Is thrown when the operation have been canceled (AsyncConfig.CancellationSource).</exception>
-        public static Task<short> ReconnectAndRejoinAsync(this RealtimeClient client, bool throwOnError = true, AsyncConfig config = null)
+        public static Task<short> ReconnectAndRejoinAsync(this RealtimeClient client, object ticket = null, bool throwOnError = true, AsyncConfig config = null)
         {
             return config.Resolve().TaskFactory.StartNew(() =>
             {
@@ -144,7 +150,7 @@ namespace Photon.Realtime
                     return Task.FromException<short>(new OperationStartException("Client still connected"));
                 }
 
-                if (client.ReconnectAndRejoin() == false)
+                if (client.ReconnectAndRejoin(ticket) == false)
                 {
                     return Task.FromException<short>(new OperationStartException("Failed to start reconnecting"));
                 }
@@ -164,6 +170,13 @@ namespace Photon.Realtime
                     }}));
                 return handler.Task;
             }).Unwrap();
+        }
+
+        /// <inheritdoc cref="ReconnectAndRejoinAsync(RealtimeClient, object, bool, AsyncConfig)"/>
+        [Obsolete("Use ReconnectAndRejoinAsync(this RealtimeClient client, object ticket, bool throwOnError, AsyncConfig config) instead")]
+        public static Task<short> ReconnectAndRejoinAsync(this RealtimeClient client, bool throwOnError = true, AsyncConfig config = null)
+        {
+            return ReconnectAndRejoinAsync(client, null, throwOnError, config);
         }
 
         /// <summary>
@@ -233,10 +246,10 @@ namespace Photon.Realtime
                 var logLevel = client.LogLevel;
 
                 handler.Disposables.Enqueue(client.CallbackMessage.ListenManual<OnDisconnectedMsg>(m => {
-                    if (logLevel >= LogLevel.Info)
-                    {
-                        Log.Info($"Disconnected: {m.cause}");
-                    }
+                    //if (logLevel >= LogLevel.Info)
+                    //{
+                    //    Log.Info($"Disconnected: {m.cause}");
+                    //}
                     handler.SetResult(ErrorCode.Ok);
                 }));
 
@@ -427,7 +440,7 @@ namespace Photon.Realtime
                     return Task.FromException<short>(new OperationStartException("Must be connected to master server"));
                 }
 
-                if (client.OpRejoinRoom(roomName) == false)
+                if (client.OpRejoinRoom(roomName, ticket) == false)
                 {
                     return Task.FromException<short>(new OperationStartException("Failed to send RejoinRoom operation"));
                 }
@@ -806,7 +819,7 @@ namespace Photon.Realtime
                 }
 
                 // if the (handler) token did not signal, and the task is still running, mark it as cancelled
-                if (token.IsCancellationRequested == false)
+                if (token.IsCancellationRequested == false && completionSource != null)
                 {
                     switch (completionSource.Task.Status)
                     {
@@ -814,7 +827,7 @@ namespace Photon.Realtime
                         case TaskStatus.Faulted: break;
                         case TaskStatus.Canceled: break;
                         default:
-                            completionSource?.TrySetException(new OperationCanceledException("Operation canceled"));
+                            completionSource.TrySetException(new OperationCanceledException("Operation canceled"));
                             break;
                     }
                 }

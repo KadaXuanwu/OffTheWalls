@@ -1,3 +1,102 @@
+# 3.0.5
+
+## Stable
+
+### Build 1759 (Jul 21, 2025)
+
+**Bug Fixes**
+
+- Fixed: An issue in the inspector that was still drawing the `Preserve` attribute warning for system types
+
+### Build 1749 (Jul 11, 2025)
+
+**Bug Fixes**
+
+- Fixed: An issue that caused the `SystemConfig` inspector to not display the system names correctly
+
+### Build 1748 (Jul 11, 2025)
+
+**Bug Fixes**
+
+- Fixed: An issue that caused the `FPVector3` swizzles (`XYO`, `XOZ`, `OYZ`) to disappear
+- Fixed: An issue that caused the script compilation to fail with Multiplayer Playmode enabled in Unity 6 (`QuantumStartUIMppmConnectCommand`)
+
+### Build 1740 (Jul 08, 2025)
+
+**What's New**
+
+- Added a new and simpler graphical connection menu UI, select `Tools > Quantum > Setup > Add Start UI To Scene`
+- Added a unique to checkout id generator asset called `QuantumMachineId` to the SDK to be used for `AppVersion` during development for example
+- Added `CollisionInfo2D.TimeOfImpact` (and 3D) accessible during physics callbacks when CCD is enabled
+- Added a replacement for the required `[Preserve]` attribute on Quantum systems: `QuantumSystemsLinkerProcessor` is an implementation of `IUnityLinkerProcessor` that ensures all the system types used in any of `SystemsConfig` asset get preserved, it can be disabled with the `QUANTUM_DISABLE_SYSTEM_LINKER_PROCESSOR` define
+- Added a static delegate to name Quantum entities: `EntityRef.GetEntityNameUser` can return a custom `EntityRef` string representation otherwise the default `EntityRef.ToString` is used. The entity name is  displayed in `FramePrinter`, `QuantumStateInspector` and `EntityViewUpdater`
+- Added an option to split the generated code into multiple files: `GeneratorOptions.MaxLinesPerFile` sets the intended maximum number of lines per file (`int.MaxValue` by default). If a file goes above the limit, additional files with `.Part<N>` suffix will be created. Actual files may be slightly longer or shorter then intended max line count because it estimates line counts ahead of time. Use partial `QuantumCodeGenSettings.GetOptionsUser` method to override the default value
+- Added `Key`, `Value` and `KeyPtrUnsafe` properties to `QDictionary<,>.Enumerator`, allowing for a non-copying access to the underlying entry
+- Added the new flag `ChecksumErrorDumpOptions.SceneMesh3D` to dump the 3D Physics Scene Mesh metadata
+- Added the new flag `QuantumGameFlags.DisableMemoryIntegrityCheck` to disable the initial memory integrity check
+- Added support to run the SDK as a local UPM package, use `Tools > Quantum > Export > Convert SDK to local UPM packages` to move the SDK source code outside the `Assets` folder
+- Added `Frame.TryGetPlayerCommand()` to simplify checking for an explicit command type
+- Added the `DeterministicCommand` script template to the Unity Editor asset menu
+- Added a setter to `Frame.IsVerified`
+
+**Changes**
+
+- Updated to Photon Realtime version `5.1.6`
+- Code-generated properties and methods are marked `readonly` to avoid defensive copies wherever possible
+- API methods and properties are marked as `readonly` wherever possible
+- Systems no longer need to be marked with `[Preserve]` attribute
+- `AssetObjects` can now be fully qualified in `.qtn` (e.g. `asset_ref<Quantum.SomeNamespace.AssetName>`)
+- Improved the `QuantumUnityDB` import speed when there aren't any packages specified in `AssetSearchPaths`
+- Unity-provided packages are ignored when looking for assets, to override, define `QUANTUM_ENABLE_SEARCH_IN_UNITY_PACKAGES`
+- 2D and 3D type-specific joint prototypes (e.g. `DistanceJointConfig`) are now obsolete, use the respective general joint prototype (e.g. `Joint2DConfig`) instead
+- `Heap.Stats.PagesFull` now better reflects the number of frame heap pages with all blocks allocated
+- The State Inspector "Create Entity..." context menu item creates an empty entity now, to add components use `Add/Override Components` button
+- Removed all remaining references to unused native physics library (which will be released in Quantum 3.1)
+- Added a warning log when the debug input script still runs while already creating custom input
+
+**Bug Fixes**
+
+- Fixed: An issue in `ComponentSet.Remove` methods that could cause bits to be flipped
+- Fixed: An issue in `SystemThreadedFilter` that could cause to mistakenly early-exit when an entire slice was rejected by the iterator (e.g. due to an Any/Without requirement)
+- Fixed: An issue that caused `IntVector2.GetHashCode()` and `IntVector3.GetHashCode()` to be non-deterministic
+- Fixed: An issue that caused restarting online games with a snapshot to fail with exceptions
+- Fixed: An issue that caused the `Draw.Shape()` to be stripped in Quantum release dlls
+- Fixed: An issue in `QuantumDemoInputShooter3D` that would cause part of the input (e.g. Yaw and Pitch) to be reset when polled
+- Fixed: An issue in `FPQuaternion.LookRotation` when the forward direction was zeroed or was collinear to the up direction
+- Fixed: An issue in `FPVector3.Slerp` when working with opposite vectors, which caused it to return different values from Unity's `Vector3.Slerp`
+- Fixed: An issue in `FPVector3.Slerp` when the from vector was zeroed
+- Fixed: An issue in `FPMatrix4x4.InverseLookAt` and `.FPMatrix4x4LookAt` when working with opposite vectors that caused it to return values either wrong or not equivalent to Unity's counterpart
+- Fixed: An issue in `FPQuaternion.FromToRotation` that caused it to return a wrong result when from and to directions were opposite to each other
+- Fixed: An issue in the 3D sphere-mesh collisions where `SmoothSphereMeshCollisions` was not used when CCD is enabled
+- Fixed: An issue that could cause a desync if all toggleable 3D collider triangles in a given cell were disabled before a late-join
+- Fixed: An issue that caused non-serializable simulation types being emit by component/struct prototypes for `Joint`, `Joint3D`, `Shape2D` and `Shape3D`
+- Fixed: An issue in 2D and 3D Physics that caused OnTriggerExit callbacks to not be called if the non-trigger collider was a sleeping body
+- Fixed: An issue in 3D Physics Scene Mesh serialization that could cause desyncs
+- Fixed: An issue in 3D Shape Cast broadphase queries with first-hit-only that caused them to ignore `DetectOverlapsAtCastOrigin` query option when querying mesh colliders
+- Fixed: An issue in 3D Physics that could cause invalid memory access when triangles were dynamically added to the Scene Mesh and queries were performed on the same frame
+- Fixed: An issue that could cause memory leaks in the frame heap is multiple compound shapes had their buffers expanded on the same frame
+- Fixed: An issue that could cause a desync if a mutable mesh collider was enabled/disabled while being edited, attempting to do so will now throw an exception
+- Fixed: An issue in navmesh importing and baking that could cause the links target triangles to be offset by the number of ignored degenerate triangles
+- Fixed: An issue with navmesh links during importing when using `QUANTUM_XY`
+- Fixed: An issue with gizmo transform handles being hidden when clicking a different game object
+- Fixed: An issue that caused the navmesh gizmo text colors (vertex ids, triangle ids) to not be used correctly
+- Fixed: An issue that could break navmeshes during importing when using a larger `FixTrianglesOnEdgesEpsilon` (`0.001` or more), its default value was changed from `float.epsilon` to `1e-6f`
+- Fixed: An issue that could caused `SessionRunner.ShutdownAsync()` to assert on subsequent calls
+- Fixed: An issue that caused the `SessionRunner` to not wait for the connection to shutdown before returning while not handling the `ShutdownConnectionOptions` correctly
+- Fixed: An issue that could cause a `ViewComponent` to be initialized twice
+- Fixed: An issue that caused the `LayerMatrix` inspector to be not working in Unity 6+
+- Fixed: An issue in `RangeEx` attribute applied to `FP` that was overwriting exiting values during multi-selecting
+- Fixed: An issue that caused an error when importing Quantum in Unity 6 related to `Packages/com.unity.render-pipelines.core/Runtime/Debugging/Prefabs/Widgets/DebugUIValuePersistent.prefab`
+- Fixed: An issue with the readability of `AssetObject` names in the dark mode when logged with `Quantum.Log` class
+- Fixed: An issue that caused an hiccup when opening the Quantum Gizmo Overlay
+- Fixed: An issue that caused the Quantum menu to display a connection error stating the map could not be found if `SimulationConfig.AutoLoadSceneFromMap` is set to `Disabled`
+- Fixed: An issue that caused the `QuatumGame` to keep references to replay recording data structures after being destroyed which makes leaking their memory more likely
+- Fixed: An issue that caused the Hub install button to create new sample scenes if a `Quantum.Map` asset resides outside the `QuantumUser` folder
+- Fixed: An issue that caused the workspace user scripts to have random script GUIDS (e.g. `SimulationConfig.User.cs`) when being installed causing them to be recreated when pressing `Install` again after moving them to a different folder, their meta files have to be replaced by the ones from a clean SDK installation to fix for upgrading projects
+- Fixed: An issue that could cause the assertion `Old predicted command for player..`
+- Fixed: An issue that caused the `ViewComponent` scripts to not be multi-editable
+- Fixed: An issue in the state inspector that adding/overriding components not use the default field values
+
 # 3.0.4
 
 ## Stable

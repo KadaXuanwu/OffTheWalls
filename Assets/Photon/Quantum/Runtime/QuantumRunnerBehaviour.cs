@@ -34,7 +34,7 @@ namespace Quantum {
     /// Unity Update event triggers the runner updates and ticks the Quantum simulation.
     /// </summary>
     public void Update() {
-      Runner?.Update();
+      if (Runner) Runner.Update();
     }
 
     void OnPostRenderInternal(ScriptableRenderContext context, Camera camera) {
@@ -102,7 +102,7 @@ namespace Quantum {
       }
       
       if (_profilingClient == null) {
-        var game = Runner?.Game;
+        var game = Runner ? Runner.Game : null;
         if (game == null) {
           return;
         }

@@ -197,6 +197,7 @@ MonoBehaviour:
         _value: 1
       DisableFill:
         _value: 0
+      DrawTriangleId: 0
     NavMeshVertexNormals:
       Enabled: 0
       Color: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

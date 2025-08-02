@@ -566,6 +566,10 @@ namespace Photon.Realtime
 
         /// <summary>(223) Sent by Photon to update a token before it times out.</summary>
         public const byte AuthEvent = 223;
+
+        /// <summary>(229) Used with some first party plugins (e.g. Matchmaking Tickets and Voice Interest Management).</summary>
+        /// <remarks>The content of a CommandEvent is of type object[] and the first entry in it a byte naming the use. Refer to CommandEventSubcode.</remarks>
+        public static byte CommandEvent = 220;
     }
 
 
@@ -949,6 +953,17 @@ namespace Photon.Realtime
 
         /// <summary>Purge cache slices with specified index and anything lower than that. You must set RaiseEventArgs.CacheSliceIndex for this.</summary>
         SlicePurgeUpToIndex = 13,
+    }
+
+    /// <summary>Used with EventCode.CommandEvent (220) by some first party plugins (e.g. Matchmaking Tickets and Voice Interest Management).</summary>
+    enum CommandEventSubcode: byte
+    {
+        /// <summary>Targets "Ticket Plugin".</summary>
+        GenerateTicket = 1,
+        /// <summary>Targets "Voice Interest Management Plugin".</summary>
+        UpdateMute = 2,
+        /// <summary>Targets "Voice Interest Management Plugin".</summary>
+        UpdateProximity = 3
     }
 
     /// <summary>

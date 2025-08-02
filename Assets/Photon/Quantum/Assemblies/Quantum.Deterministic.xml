@@ -4022,7 +4022,7 @@
         <member name="M:Photon.Deterministic.FPQuaternion.FromToRotationSkipNormalize(Photon.Deterministic.FPVector3,Photon.Deterministic.FPVector3)">
             <summary>
             Creates a quaternion which rotates from <paramref name="fromVector"/> to <paramref name="toVector"/> (not normalized internally).
-            If these vectors are known to be normalized or have magnitude close to 1, use <see cref="M:Photon.Deterministic.FPQuaternion.FromToRotation(Photon.Deterministic.FPVector3,Photon.Deterministic.FPVector3)"/> instead.
+            If these vectors are not known to be normalized, use <see cref="M:Photon.Deterministic.FPQuaternion.FromToRotation(Photon.Deterministic.FPVector3,Photon.Deterministic.FPVector3)"/> instead.
             </summary>
             <param name="fromVector"></param>
             <param name="toVector"></param>
@@ -7722,6 +7722,23 @@
             </summary>
             <param name="player">Player</param>
             <returns>A command if one is available.</returns>
+        </member>
+        <member name="M:Photon.Deterministic.DeterministicFrame.GetPlayerCommand``1(Quantum.PlayerRef)">
+            <summary>
+            Get player command and cast to specific type.
+            </summary>
+            <typeparam name="T">Command type</typeparam>
+            <param name="player">Player</param>
+            <returns>Available command of concrete type or null if there is no command or that command is of a different type.</returns>
+        </member>
+        <member name="M:Photon.Deterministic.DeterministicFrame.TryGetPlayerCommand``1(Quantum.PlayerRef,``0@)">
+            <summary>
+            Get player command and cast to specific type.
+            </summary>
+            <typeparam name="T">Command type</typeparam>
+            <param name="player">Player</param>
+            <param name="command">Available command of concrete type or null if there is no command or that command is of a different type.</param>
+            <returns><see langword="true"/> if a command of this type was found.</returns>
         </member>
         <member name="M:Photon.Deterministic.DeterministicFrame.DumpFrame(System.Int32)">
             <summary>

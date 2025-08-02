@@ -152,7 +152,7 @@ namespace Photon.Realtime
                 opParameters[ParameterCode.FindFriendsOptions] = args.ToIntFlags();
             }
 
-            
+
             SendOptions sendOptions = new SendOptions() { Reliability = true, Encrypt = true };
             bool sending = this.RealtimePeer.SendOperation(OperationCode.FindFriends, opParameters, sendOptions);
             this.paramDictionaryPool.Release(opParameters);
@@ -1007,7 +1007,7 @@ namespace Photon.Realtime
             }
 
             Log.Info(string.Format("OpLeaveRoom({0})", becomeInactive ? "inactive=true" : ""), this.LogLevel, this.LogPrefix);
-            
+
             ParameterDictionary opParameters = this.paramDictionaryPool.Acquire();
             if (becomeInactive)
             {
@@ -1016,7 +1016,7 @@ namespace Photon.Realtime
 
             bool sending = this.RealtimePeer.SendOperation(OperationCode.Leave, opParameters, SendOptions.SendReliable);
             this.paramDictionaryPool.Release(opParameters);
-            
+
             if (sending)
             {
                 this.State = ClientState.Leaving;
@@ -1033,10 +1033,10 @@ namespace Photon.Realtime
         /// </summary>
         /// <remarks>
         /// Used to return to a room, before this user was removed from the players list.
-        /// Internally, the userID will be checked by the server, to make sure this user is in the room (active or inactice).
+        /// Internally, the userID will be checked by the server, to make sure this user is in the room (active or inactive).
         ///
         /// In contrast to join, this operation never adds a players to a room. It will attempt to retake an existing
-        /// spot in the playerlist or fail. This makes sure the client doean't accidentally join a room when the
+        /// spot in the playerlist or fail. This makes sure the client does not accidentally join a room when the
         /// game logic meant to re-activate an existing actor in an existing room.
         ///
         /// This method will fail on the server, when the room does not exist, can't be loaded (persistent rooms) or
@@ -1645,6 +1645,54 @@ namespace Photon.Realtime
             }
         }
 
+        /// <summary>Uses RaiseEvent to communicate with the Party Ticket Plugin.</summary>
+        /// <remarks>
+        /// This operation asks a plugin to generate a matchmaking ticket for a party of players,
+        /// which makes it convenient to find another room as party.
+        /// A party of players can each use their ticket for random matchmaking to find a room and
+        /// will all join the same room.
+        ///
+        /// Provided the client is in a room and the Party Ticket Plugin is available, this operation
+        /// asks the server to generate a ticket for all players in the room or just those in actorsToInclude.
+        ///
+        /// Invited clients will receive a EventCode.CommandEvent with an object[] as data.
+        /// That object[] contains: (byte)1 as identifier, (int[]) invited players by actorNumber, (string) ticket.
+        /// The ticket can be used in JoinRandomOrCreateRoomAsync as JoinRandomRoomArgs.Ticket.
+        ///
+        /// OpCreateMatchmakingTicket is not a distinct operation.
+        /// It uses the operation RaiseEvent to pass a "CommandEvent" (code: 220) to a plugin.
+        /// The Party Ticket Plugin handles event code 220 with an object[] as content, if the first item is a (byte) 1.
+        ///
+        /// If a room does not have the Party Ticket Plugin and no other plugin handles the EventCode.CommandEvent,
+        /// no ticket gets generated and the event will only be sent back to this client. The content of said event
+        /// will be the object[] as sent. This means, it will not have the third entry, which has the ticket.
+        /// </remarks>
+        /// <param name="actorsToInclude">Optionally pass the actorNumbers of the players who should are invited to the Matchmaking Party (and get a ticket).</param>
+        /// <returns>If the operation could be sent. The client must be in a room.</returns>
+        public bool OpCreateMatchmakingTicket(int[] actorsToInclude)
+        {
+            if (!this.CheckIfOpCanBeSent(OperationCode.RaiseEvent, this.Server, "OpCreateMatchmakingTicket (RaiseEvent())"))
+            {
+                return false;
+            }
+
+            int[] targetWithoutPlugin = new int[] { this.LocalPlayer.ActorNumber };
+            ParameterDictionary opParameters = this.paramDictionaryPool.Acquire();
+            try
+            {
+                object[] ticketRequest = new object[] { (byte)CommandEventSubcode.GenerateTicket, actorsToInclude };
+                opParameters.Add(ParameterCode.Code, (byte)EventCode.CommandEvent);
+                opParameters.Add(ParameterCode.ActorList, targetWithoutPlugin);
+                opParameters.Add(ParameterCode.Data, ticketRequest);
+
+                return this.RealtimePeer.SendOperation(OperationCode.RaiseEvent, opParameters, SendOptions.SendReliable);
+            }
+            finally
+            {
+                this.paramDictionaryPool.Release(opParameters);
+            }
+        }
+
 
         /// <summary>
         /// Internally used operation to set some "per server" settings. This is for the Master Server.
@@ -1653,6 +1701,11 @@ namespace Photon.Realtime
         /// <returns>False if the operation could not be sent.</returns>
         protected internal bool OpSettings(bool receiveLobbyStats)
         {
+            if (!receiveLobbyStats)
+            {
+                return false;
+            }
+
             if (!this.IsConnectedAndReady || this.Server != ServerConnection.MasterServer)
             {
                 //Log.Debug($"OpSettings() skipping because IsConnectedAndReady: {IsConnectedAndReady} / Server: {Server}", this.LogLevel, this.LogPrefix);

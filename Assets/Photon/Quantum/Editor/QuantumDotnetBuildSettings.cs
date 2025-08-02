@@ -100,12 +100,12 @@ namespace Quantum.Editor {
     /// </summary>
     public DotnetConfiguration TargetConfiguration;
 
+    internal const string PhotonServerPath = "Photon.Server/deploy_win/bin";
     const string PluginSdkAssetPath = "Photon.Server/deploy_win/Plugins/QuantumPlugin3.0/bin/assets";
-    const string PhotonServerPath = "Photon.Server/deploy_win/bin";
     const string PluginSdkLibPath = "Lib";
-    const string SimulationProjectAssetDefaultPath = "Assets/Photon/Quantum/Editor/Dotnet/Quantum.Simulation.Dotnet.csproj.txt";
-    const string RunnerProjectAssetDefaultPath = "Assets/Photon/Quantum/Editor/Dotnet/Quantum.Runner.Dotnet.csproj.txt";
-    const string DependencyArchivePath = "Assets/Photon/Quantum/Editor/Dotnet/Quantum.Dotnet.{0}.zip";
+    const string SimulationProjectAssetDefaultPath = QuantumUnityEditorPaths.Root + "/Editor/Dotnet/Quantum.Simulation.Dotnet.csproj.txt";
+    const string RunnerProjectAssetDefaultPath = QuantumUnityEditorPaths.Root + "/Editor/Dotnet/Quantum.Runner.Dotnet.csproj.txt";
+    const string DependencyArchivePath = QuantumUnityEditorPaths.Root + "/Editor/Dotnet/Quantum.Dotnet.{0}.zip";
 
     /// <summary>
     /// A quick check if the plugin sdk was found and its path saved.
@@ -195,12 +195,16 @@ namespace Quantum.Editor {
       settings.ProjectSettings.Export($"{settings.ProjectBasePath}/Quantum.Simulation.Dotnet/Quantum.Simulation.Dotnet.csproj.include");
 
       // Export the csproj templates
+      var quantumAssets = GetUnityProjectRoot + "/Assets/Photon/Quantum";
+#if QUANTUM_UPM
+      quantumAssets = QuantumUnityEditorPaths.Root;
+#endif
       var simulationProjectText = settings.SimulationProjectTemplate.text;
-      simulationProjectText = simulationProjectText.Replace("[UnityProjectPath]", Path.GetRelativePath(Path.GetFullPath($"{settings.ProjectBasePath}/Quantum.Simulation.Dotnet"), GetUnityProjectRoot));
+      simulationProjectText = simulationProjectText.Replace("[UnityProjectPath]", Path.GetRelativePath(Path.GetFullPath($"{settings.ProjectBasePath}/Quantum.Simulation.Dotnet"), quantumAssets));
       File.WriteAllText($"{settings.ProjectBasePath}/Quantum.Simulation.Dotnet/Quantum.Simulation.Dotnet.csproj", simulationProjectText);
 
       var runnerProjectText = settings.RunnerProjectTemplate.text;
-      runnerProjectText = runnerProjectText.Replace("[UnityProjectPath]", Path.GetRelativePath(Path.GetFullPath($"{settings.ProjectBasePath}/Quantum.Runner.Dotnet"), GetUnityProjectRoot));
+      runnerProjectText = runnerProjectText.Replace("[UnityProjectPath]", Path.GetRelativePath(Path.GetFullPath($"{settings.ProjectBasePath}/Quantum.Runner.Dotnet"), quantumAssets));
       File.WriteAllText($"{settings.ProjectBasePath}/Quantum.Runner.Dotnet/Quantum.Runner.Dotnet.csproj", runnerProjectText);
 
       // Extract zip folders

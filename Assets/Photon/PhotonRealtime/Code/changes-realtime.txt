@@ -3,6 +3,26 @@ Photon Realtime C# Client - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 5.1.6 (01. Juli 2025 - rev7991)
+    Fixed: async extensions now select random matchmaking on empty room names (instead only checking for null).
+    Changed: Logging level for the message when AuthOnceWss is done and switches back to the expected/configured protocol. This is now on debug level.
+    Removed: Surplus info logging for OnDisconnectedMsg. It gets logged (with info level and prefix) in Callbacks.OnDisconnected().
+    Changed: OpSettings() is now only sent, if the client requests the Lobby Stats. If it doesn't, the op isn't called.
+    Added: EventCode.CommandEvent code 220. Used with some first party plugins (e.g. Matchmaking Tickets and Voice Interest Management).
+    Added: OpCreateMatchmakingTicket() to request a party ticket for all or a range of players in the room.
+    Added: CommandEventSubcode enum for that event.
+    Fixed: Potential NullreferenceException inside CreateServiceTask(). If there is no completionSource, the switch could not rely on it.
+    Changed: Signature of ReconnectAndRejoinAsync. It has an optional ticket parameter (for Matchmaking Ticket). The previous parameter implementation is obsolete but working.
+    Removed: ReconnectAndRejoinAsync() overload without the ticket. It was not helpful keeping this around (as it was ambiguous).
+    Updated: Reference doc for ReconnectAndRejoin().
+    Fixed: RejoinRoomAsync will use a given "Ticket" as parameter for the internal call of OpRejoinRoom(). It was silently ignored so far.
+    Changed: ReconnectToRoomAsync() to attempt a ReconnectAndRejoinAsync() first of all. If that doesn't succeed, the client connects and does the old approach.
+    Changed: ConnectToRoomAsync() to try only configure the client, if it was not connected. It uses ConnectUsingSettingsAsync() to connect if needed.
+    Changed: ConnectUsingSettingsAsync() to continue immediately, if the client is already connected to the Master Server and able to call matchmaking operations.
+    Fixed: Reference doc summary for Player.IsInactive.
+    Changed: RealtimeFallback() calls StopFallbackSendAckThread() to end the fallback thread after the KeepAliveInBackground passed (Service() inactivity). This is a fix for non-Unity projects.
+    Changed: OnApplicationQuit() will set IsNetworkSimEnabled = false to avoid Unity 6 IL2CPP builds from getting stuck indefinitely. This is a workaround for a Unity issue. (https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-104910)
+
 Version 5.1.5 (24. April 2025 - rev7920)
     Fixed: DisconnectAsync() to run the client's Service method until OnDisconnectedMsg gets fired. This makes sure the OnDisconnected callback and message are dispatched.
 
@@ -26,11 +46,11 @@ Version 5.1.2 (19. November 2024 - rev7770)
     Changed: IConnectionCallbacks.OnConnected() and the related callback message OnConnectedMsg are now obsolete and no longer called. Both will be removed in a later version.
     Note: Use OnConnectedToMaster instead. To confirm the client connected in a debug scenario, check the debug log level output.
 
-	Added: Warning log to RealtimeFallback() about lack of service calls.
-	Added: DisconnectCause.ClientServiceInactivity used after the KeepAliveInBackground.
-	Changed: ConnectionHandler.DisconnectAfterKeepAlive is now obsolete. After the KeepAliveInBackground, the client will disconnect with DisconnectCause.ClientServiceInactivity.
-	Changed: Protocol Fallback. Any fallback is only done towards WSS (when another protocol fails). Unlike before, a fallback is done when the initial connection to a Name Server or Master Server fails.
-	Note: WSS is commonly used on the Name Server connection (due to AuthOnceWss), so the initial UDP connection attempt is on the Master Server. This can fallback now, too.
+    Added: Warning log to RealtimeFallback() about lack of service calls.
+    Added: DisconnectCause.ClientServiceInactivity used after the KeepAliveInBackground.
+    Changed: ConnectionHandler.DisconnectAfterKeepAlive is now obsolete. After the KeepAliveInBackground, the client will disconnect with DisconnectCause.ClientServiceInactivity.
+    Changed: Protocol Fallback. Any fallback is only done towards WSS (when another protocol fails). Unlike before, a fallback is done when the initial connection to a Name Server or Master Server fails.
+    Note: WSS is commonly used on the Name Server connection (due to AuthOnceWss), so the initial UDP connection attempt is on the Master Server. This can fallback now, too.
 
 Version 5.1.1 (22. Oktober 2024 - rev7739)
     Changed: Disconnect() is now separate from the internally used Disconnect(DisconnectCause cause). Simplifies the public API.
@@ -49,7 +69,7 @@ Version 5.1.0 (01. Oktober 2024 - rev7714)
     Changed: ReplacePortWithAlternative has a null check for the address and 0 check for the port. It is now the same in v4 and v5. Removed third parameter.
     Removed: Usage of NETFX_CORE define.
     Changed: The Authenticate response on the Name Server will first apply the expected protocol for the Master Server connection. Then read the address and maybe rewrite it.
-	Removed: Unity special cases of using SocketUdpAsync / SocketTcpAsync for .Net 4.x for Mono specifically. Recent Unity versions (2019 tested) no longer run into issues with receiving data in blocking mode.
+    Removed: Unity special cases of using SocketUdpAsync / SocketTcpAsync for .Net 4.x for Mono specifically. Recent Unity versions (2019 tested) no longer run into issues with receiving data in blocking mode.
 
 Version 5.0.11 (28. August 2024 - rev7655)
     No notable changes.

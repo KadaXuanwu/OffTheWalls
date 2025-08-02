@@ -47,6 +47,8 @@ namespace Quantum.Editor {
         return;
       }
 
+      var rootFolder = editorSettings.GetAssetLookupRoot();
+      
       var db = ScriptableObject.CreateInstance<QuantumUnityDB>();
       
       var sources = new List<(IQuantumAssetObjectSource, AssetGuid, string)>();
@@ -59,7 +61,7 @@ namespace Quantum.Editor {
 
       {
         Profiler.BeginSample("Iterating Assets");
-        foreach (HierarchyProperty it in QuantumUnityDBUtilities.IterateAssets()) {
+        foreach (HierarchyProperty it in QuantumUnityDBUtilities.IterateAssets(rootFolder)) {
           try {
             var source = CreateAssetSource(factory, it.instanceID, it.name, it.isMainRepresentation);
             if (source != default) {

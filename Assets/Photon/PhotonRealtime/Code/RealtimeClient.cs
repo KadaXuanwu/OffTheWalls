@@ -827,15 +827,32 @@ namespace Photon.Realtime
             return this.CallConnect(ServerConnection.MasterServer);
         }
 
-        /// <summary>
-        /// Can be used to return to a room quickly by directly reconnecting to a game server to rejoin a room.
-        /// </summary>
+
+        /// <summary>Directly return to a room by reconnecting to a game server to attempt a rejoin. This is allowed until the PlayerTtl expired.</summary>
         /// <remarks>
-        /// Rejoining room will not send any player properties. Instead client will receive up-to-date ones from server.
+        /// Callbacks: OnJoinedRoom in case of success. OnJoinRoomFailed in case of errors.
+        ///
+        /// Even if the Game Server and room to rejoin are known, the operation can fail on the Game Server for
+        /// several reasons:
+        ///
+        /// The server did not realize yet that this user is no longer connected (ErrorCode.JoinFailedFoundActiveJoiner).
+        ///
+        /// Server side, the player (identified by userID) is no longer in the room's player list (ErrorCode.JoinFailedWithRejoinerNotFound).
+        /// This is when the PlayerTtl expired.
+        ///
+        /// Server side, the room is no longer existing (ErrorCode.GameDoesNotExist).
+        ///
+        /// Rejoining a room will not send any player properties.
+        /// Those are received from server instead (so the client knows the player properties as set on server).
         /// If you want to set new player properties, do it once rejoined.
+        ///
+        /// Depending on the server settings, a matchmaking ticket might be required.
+        /// In that case, make sure the ticket's expiry time covers the whole session time to allow a rejoin.
+        /// Alternatively, a new ticket can be written by a server plugin, to allow a rejoin if needs be.
         /// </remarks>
-        /// <returns>False, if the conditions are not met. Then, this client does not attempt the ReconnectAndRejoin.</returns>
-        public bool ReconnectAndRejoin()
+        /// <param name="ticket">Optionally set a matchmaking ticket. Defaults to null, so none is sent to the Game Server on rejoin.</param>
+        /// <returns>False, if the conditions are not met (check logged warnings). Then, this client does not attempt the ReconnectAndRejoin and there is no callback.</returns>
+        public bool ReconnectAndRejoin(object ticket = null)
         {
             if (this.RealtimePeer.PeerState != PeerStateValue.Disconnected)
             {
@@ -858,15 +875,10 @@ namespace Photon.Realtime
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(this.GameServerAddress) && this.enterRoomArgumentsCache != null)
-            {
-                this.lastJoinType = JoinType.JoinRoom;
-                this.enterRoomArgumentsCache.JoinMode = JoinMode.RejoinOnly;
-                this.enterRoomArgumentsCache.Ticket = null;
-                return this.CallConnect(ServerConnection.GameServer);
-            }
-
-            return false;
+            this.lastJoinType = JoinType.JoinRoom;
+            this.enterRoomArgumentsCache.JoinMode = JoinMode.RejoinOnly;
+            this.enterRoomArgumentsCache.Ticket = ticket;
+            return this.CallConnect(ServerConnection.GameServer);
         }
 
 
@@ -1374,7 +1386,7 @@ namespace Photon.Realtime
             if (operationResponse.Parameters.ContainsKey(ParameterCode.PluginName))
             {
                 string plugin = (string)operationResponse.Parameters[ParameterCode.PluginName];
-                if (!string.Equals(plugin, "webhooks", StringComparison.InvariantCultureIgnoreCase))
+                if (!string.IsNullOrEmpty(plugin) && !string.Equals(plugin, "webhooks", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Log.Info($"GameEnteredOnGameServer() plugin: {plugin}", this.LogLevel, this.LogPrefix);
                 }
@@ -1721,7 +1733,7 @@ namespace Photon.Realtime
                         {
                             if (this.AppSettings.AuthMode == AuthModeOption.AuthOnceWss && this.RealtimePeer.TransportProtocol != this.AppSettings.Protocol)
                             {
-                                Log.Info($"AuthOnceWss response switches TransportProtocol to: {this.AppSettings.Protocol}.", this.LogLevel, this.LogPrefix);
+                                Log.Debug($"AuthOnceWss response switches TransportProtocol to: {this.AppSettings.Protocol}.", this.LogLevel, this.LogPrefix);
                                 this.RealtimePeer.TransportProtocol = this.AppSettings.Protocol;
                             }
 

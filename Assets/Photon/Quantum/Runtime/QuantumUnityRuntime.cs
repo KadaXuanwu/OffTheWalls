@@ -3085,22 +3085,22 @@ namespace Quantum {
     /// <summary>
     /// Draw the NavMesh links.
     /// </summary>
-    public QuantumGizmoEntry NavMeshLinks = new QuantumGizmoEntry(QuantumGizmoColors.Blue) { Enabled = true, OnlyDrawSelected = true };
+    public NavMeshLinkGizmoEntry NavMeshLinks = new NavMeshLinkGizmoEntry(QuantumGizmoColors.Blue, false) { Enabled = true, OnlyDrawSelected = true };
 
     /// <summary>
     /// Draw the vertex normals of the NavMesh.
     /// </summary>
-    public QuantumGizmoEntry NavMeshVertexNormals = new QuantumGizmoEntry(QuantumGizmoColors.Yellow) { OnlyDrawSelected = true };
+    public QuantumGizmoEntry NavMeshVertexNormals = new QuantumGizmoEntry(QuantumGizmoColors.Green) { OnlyDrawSelected = true };
 
     /// <summary>
     /// Draw the triangle ids of the NavMesh.
     /// </summary>
-    public QuantumGizmoEntry NavMeshTriangleIds = new QuantumGizmoEntry(QuantumGizmoColors.TransparentLightBlue) { OnlyDrawSelected = true };
+    public QuantumGizmoEntry NavMeshTriangleIds = new QuantumGizmoEntry(QuantumGizmoColors.Yellow) { OnlyDrawSelected = true };
 
     /// <summary>
     /// Draw the region ids of the NavMesh.
     /// </summary>
-    public QuantumGizmoEntry NavMeshRegionIds = new QuantumGizmoEntry(QuantumGizmoColors.TransparentMaroon) { OnlyDrawSelected = true };
+    public QuantumGizmoEntry NavMeshRegionIds = new QuantumGizmoEntry(QuantumGizmoColors.White) { OnlyDrawSelected = true };
 
     /// <summary>
     /// Draw the numerical vertex ids of the NavMesh.
@@ -3471,6 +3471,26 @@ namespace Quantum {
   }
 
   /// <summary>
+  /// Individual entry for specifically the border of the navmesh section of the gizmo overlay.
+  /// </summary>
+  [Serializable]
+  public class NavMeshLinkGizmoEntry : QuantumGizmoEntry {
+    /// <summary>
+    /// Draw the link target triangle id.
+    /// </summary>
+    public bool DrawTriangleId;
+
+    /// <summary>
+    /// Default constructor.
+    /// </summary>
+    /// <param name="color">Render color.</param>
+    /// <param name="drawTriangleId">Draw the triangle id number of the link target.</param>
+    public NavMeshLinkGizmoEntry(Color color, bool drawTriangleId) : base(color) {
+      DrawTriangleId = drawTriangleId;
+    }
+  }
+
+  /// <summary>
   /// Individual entry for specifically the navmesh section of the gizmo overlay.
   /// </summary>
   [Serializable]
@@ -3684,7 +3704,7 @@ namespace Quantum {
 
     [DrawGizmo(GizmoType.Selected | GizmoType.Active | GizmoType.NonSelected)]
     static void DrawGizmos(QuantumRunnerBehaviour behaviour, GizmoType gizmoType) {
-      if (behaviour.Runner?.Session == null) {
+      if (behaviour.Runner == null || behaviour.Runner.Session == null) {
         return;
       }
 
@@ -4826,6 +4846,10 @@ namespace Quantum {
 #if QUANTUM_ENABLE_AI && !QUANTUM_DISABLE_AI
 
       var navMeshRegionMask = mask;
+      
+      var handlesColorStyleMiddle = new GUIStyle() { alignment = TextAnchor.MiddleCenter };
+      var handlesColorStyleLeft = new GUIStyle() { alignment = TextAnchor.MiddleLeft };
+      var handlesColorStyleRight = new GUIStyle() { alignment = TextAnchor.MiddleRight };
 
       bool mapSelected = false;
       if (mapData != null) {
@@ -4852,6 +4876,8 @@ namespace Quantum {
           CreateAndDrawNavMeshGizmo(navmeshSelected, navmesh, in navMeshRegionMask);
         }
 
+        // TODO: check camera frustum
+
         if (_settings.NavMeshRegionIds.Enabled ||
             _settings.NavMeshTriangleIds.Enabled) {
           for (Int32 i = 0; i < navmesh.Triangles.Length; i++) {
@@ -4859,26 +4885,29 @@ namespace Quantum {
 
             // ################## NavMesh Triangle Ids ##################
 
-            if (ShouldDraw(_settings.NavMeshTriangleIds, navmeshSelected, false)) {
-              Handles.color = _settings.NavMeshTriangleIds.Color;
-              Handles.Label(t.Center.ToUnityVector3(true), i.ToString());
+            var drawTriangleIds = ShouldDraw(_settings.NavMeshTriangleIds, navmeshSelected, false);
+            var drawRegionIds = ShouldDraw(_settings.NavMeshRegionIds, navmeshSelected, false);
+
+            if (drawTriangleIds) {
+              var style = drawRegionIds ? handlesColorStyleRight : handlesColorStyleMiddle;
+              style.normal.textColor = _settings.NavMeshTriangleIds.Color;
+              Handles.Label(t.Center.ToUnityVector3(true), i.ToString(), style);
             }
 
             // ################## NavMesh Triangle Region Ids ##################
 
-            if (ShouldDraw(_settings.NavMeshRegionIds, navmeshSelected, false)) {
+            if (drawRegionIds) {
               if (t.Regions.HasValidRegions) {
                 var s = string.Empty;
                 for (int r = 0; r < map.Regions.Length; r++) {
                   if (t.Regions.IsRegionEnabled(r)) {
-                    s += $"{map.Regions[r]} ({r})";
+                    s += $" {map.Regions[r]} ({r})";
                   }
                 }
 
-                var vertex0 = navmesh.Vertices[t.Vertex0].Point.ToUnityVector3(true);
-                var vertex1 = navmesh.Vertices[t.Vertex1].Point.ToUnityVector3(true);
-                var vertex2 = navmesh.Vertices[t.Vertex2].Point.ToUnityVector3(true);
-                Handles.Label((vertex0 + vertex1 + vertex2) / 3.0f, s);
+                var style = drawTriangleIds ? handlesColorStyleLeft : handlesColorStyleMiddle;
+                style.normal.textColor = _settings.NavMeshRegionIds.Color;
+                Handles.Label(t.Center.ToUnityVector3(true), s, style);
               }
             }
           }
@@ -4887,14 +4916,9 @@ namespace Quantum {
         if (_settings.NavMeshVertexNormals.Enabled ||
             _settings.NavMeshVertexIds.Enabled) {
           for (Int32 v = 0; v < navmesh.Vertices.Length; ++v) {
-            // ################## NavMesh Vertex Ids ##################
-
-            if (ShouldDraw(_settings.NavMeshVertexIds, navmeshSelected, false)) {
-              Handles.color = _settings.NavMeshVertexIds.Color;
-              Handles.Label(navmesh.Vertices[v].Point.ToUnityVector3(true), v.ToString());
-            }
-
             // ################## NavMesh Vertex Normals ##################
+
+            var arrowDirection = Vector3.zero;
 
             if (ShouldDraw(_settings.NavMeshVertexNormals, navmeshSelected, false)) {
               if (navmesh.Vertices[v].Borders.Length >= 2) {
@@ -4905,9 +4929,18 @@ namespace Quantum {
                     navmesh.Vertices[v].Point.ToUnityVector3(true),
                     navmesh.Vertices[v].Point.ToUnityVector3(true) +
                     normal.ToUnityVector3(true) * gizmosSettings.IconScale * 0.33f,
-                    GizmoUtils.DefaultArrowHeadLength * gizmosSettings.IconScale * 0.33f);
+                    GizmoUtils.DefaultArrowHeadLength * gizmosSettings.IconScale * 0.33f,
+                    GizmoUtils.DefaultArrowHeadAngle,
+                    out arrowDirection);
                 }
               }
+            }
+
+            // ################## NavMesh Vertex Ids ##################
+
+            if (ShouldDraw(_settings.NavMeshVertexIds, navmeshSelected, false)) {
+              handlesColorStyleMiddle.normal.textColor = _settings.NavMeshVertexIds.Color;
+              Handles.Label(navmesh.Vertices[v].Point.ToUnityVector3(true) + 0.02f * gizmosSettings.IconScale * arrowDirection, v.ToString(), handlesColorStyleMiddle);
             }
           }
         }
@@ -4923,13 +4956,20 @@ namespace Quantum {
 
             Gizmos.color = color;
             GizmoUtils.DrawGizmoVector(
-              navmesh.Links[i].Start.ToUnityVector3(),
-              navmesh.Links[i].End.ToUnityVector3(),
-              GizmoUtils.DefaultArrowHeadLength * gizmosSettings.IconScale);
-            GizmoUtils.DrawGizmosCircle(navmesh.Links[i].Start.ToUnityVector3(), 0.1f * gizmosSettings.IconScale, color,
+              navmesh.Links[i].Start.ToUnityVector3(true),
+              navmesh.Links[i].End.ToUnityVector3(true),
+              GizmoUtils.DefaultArrowHeadLength * gizmosSettings.IconScale,
+              GizmoUtils.DefaultArrowHeadAngle, 
+              out var direction);
+            GizmoUtils.DrawGizmosCircle(navmesh.Links[i].Start.ToUnityVector3(true), 0.1f * gizmosSettings.IconScale, color,
               style: _settings.NavMeshLinks.Style);
-            GizmoUtils.DrawGizmosCircle(navmesh.Links[i].End.ToUnityVector3(), 0.1f * gizmosSettings.IconScale, color,
+            GizmoUtils.DrawGizmosCircle(navmesh.Links[i].End.ToUnityVector3(true), 0.1f * gizmosSettings.IconScale, color,
               style: _settings.NavMeshLinks.Style);
+
+            if (_settings.NavMeshLinks.DrawTriangleId) {
+              handlesColorStyleMiddle.normal.textColor = color;
+              Handles.Label(navmesh.Links[i].End.ToUnityVector3(true) - 0.02f * gizmosSettings.IconScale * direction, navmesh.Links[i].Triangle.ToString(), handlesColorStyleMiddle);
+            }
           }
         }
 
@@ -4962,8 +5002,8 @@ namespace Quantum {
         }
       }
 #endif
-    }
-  }
+        }
+      }
 #endif
 }
 
@@ -7400,7 +7440,7 @@ namespace Quantum {
     public T Object;
     
     /// <see cref="Object"/>
-    [Obsolete("Use Asset instead")]
+    [Obsolete("Use Object instead")]
     public T Prefab {
       get => Object;
       set => Object = value;
@@ -9001,7 +9041,7 @@ namespace Quantum {
     public void Dispose() {
       _rewindSnapshots?.Clear();
       _rewindSnapshots = null;
-      _replayRunner?.Shutdown();
+      if (_replayRunner) _replayRunner?.Shutdown();
       _replayRunner = null;
     }
 
@@ -20158,7 +20198,12 @@ namespace Quantum {
           
           navmesh = NavMeshBaker.BakeNavMesh(asset, bakeData, progressBar: p);
           navmesh.SerializeType = data.NavMeshSerializeType;
+#if UNITY_EDITOR
+          QuantumEditorLog.LogImport($"Baking Quantum NavMesh '{bakeData.Name}' complete ({i + 1}/{allBakeData.Count})");
+#else
           Log.Debug($"Baking Quantum NavMesh '{bakeData.Name}' complete ({i + 1}/{allBakeData.Count})");
+#endif
+
         } catch (Exception exn) {
           Log.Exception(exn);
         }
@@ -20489,12 +20534,14 @@ namespace Quantum {
       [InlineHelp]
       public bool FixTrianglesOnEdges = true;
       /// <summary>
-      /// Larger scaled navmeshes may require to increase this value (e.g. 0.001) when false-positive borders are detected. Min = float.Epsilon.
+      /// Increase this value when borders inside the navmesh are generated.
+      /// Start by setting the epsilon to 0.0001 and never increase to more than 0.001.
+      /// Default is 1e-6f (0.000001f).
       /// </summary>
       [InlineHelp]
       [Min(float.Epsilon)]
       [DrawIf("FixTrianglesOnEdges", true)]
-      public float FixTrianglesOnEdgesEpsilon = float.Epsilon;
+      public float FixTrianglesOnEdgesEpsilon = 0.000001f;
       /// <summary>
       /// Make the height offset considerably larger than FixTrianglesOnEdgesEpsilon to better detect degenerate triangles. Is the navmesh becomes deformed chose a smaller epsilon. . Min = float.Epsilon. Default is 0.05.
       /// </summary>
@@ -20597,6 +20644,32 @@ namespace Quantum {
       }
 
       /// <summary>
+      /// Identifies and removes degenerate triangles from the mesh triangles collection.
+      /// Will copy and recreated the triangles array when any degenerate triangles has been found.
+      /// The cleanup has to be performed before creating the links, otherwise the links will reference invalid triangles.
+      /// </summary>
+      /// <param name="triangles">Triangle array</param>
+      /// <param name="reporter">Progress reporter</param>
+      public static void RemoveDegenerateTriangles(ref NavMeshBakeDataTriangle[] triangles, Action<float> reporter) {
+        var trianglesCopy = default(List<NavMeshBakeDataTriangle>);
+        for (int i = triangles.Length - 1; i >= 0; --i) {
+          var t = triangles[i];
+          if (t.VertexIds != null && t.VertexIds.Length == 3) {
+            if (t.VertexIds[0] == t.VertexIds[1] || t.VertexIds[0] == t.VertexIds[2] || t.VertexIds[1] == t.VertexIds[2]) {
+              trianglesCopy ??= new List<NavMeshBakeDataTriangle>(triangles);
+              trianglesCopy.RemoveAt(i);
+              QuantumEditorLog.WarnImport($"Removed degenerate triangle {i}");
+            }
+          }
+          reporter.Invoke(i / (float)triangles.Length);
+        }
+
+        if (trianglesCopy != null) {
+          triangles = trianglesCopy.ToArray();
+        }
+      }
+
+      /// <summary>
       /// Removes unused vertices from the vertex array.
       /// </summary>
       /// <param name="vertices">Mesh vertices collection.</param>
@@ -20657,7 +20730,7 @@ namespace Quantum {
                   break;
                 }
                 if (unityAreaMap.TryGetValue(areaId, out var regionId) == false) {
-                  Log.Error($"Failed to map Unity navmesh area {areaId}");
+                  QuantumEditorLog.ErrorImport($"Failed to map Unity navmesh area {areaId}");
                   break;
                 }
                 if (regionMap.Contains(regionId) == false) {
@@ -20721,7 +20794,7 @@ namespace Quantum {
 
             var meshRenderer = region.gameObject.GetComponent<MeshRenderer>();
             if (meshRenderer == null) {
-              Debug.LogErrorFormat("MeshRenderer missing on MapNavMeshRegion object {0} with active RegionCasting", region.name);
+              QuantumEditorLog.ErrorImport($"MeshRenderer missing on MapNavMeshRegion object {region.name} with active RegionCasting");
             } else {
               var bounds = region.gameObject.GetComponent<MeshRenderer>().bounds;
               // Grow the bounds, because the generated map is not exact
@@ -20758,7 +20831,7 @@ namespace Quantum {
             if (regionMap.Contains(regionId) == false) {
               if (regionMap.Count >= Navigation.Constants.MaxRegions) {
                 // Still add to region map, but it won't be set on the triangles.
-                Debug.LogErrorFormat("Failed to create region '{0}' because Quantum max region ({1}) reached. Reduce the number of regions.", regionId, Navigation.Constants.MaxRegions);
+                QuantumEditorLog.ErrorImport($"Failed to create region '{regionId}' because Quantum max region ({Navigation.Constants.MaxRegions}) reached. Reduce the number of regions.");
               }
 
               regionMap.Add(regionId);
@@ -20769,7 +20842,7 @@ namespace Quantum {
               triangles[triangleIndex].Cost = regionCost;
             }
           } else {
-            Debug.LogWarningFormat("A triangle island (count = {0}) can not be matched with any region bounds, try to increase the RegionDetectionMargin.\n Triangle Ids: {1}", island.Count, String.Join(", ", island.Select(sdfdsf => sdfdsf.ToString()).ToArray()));
+            QuantumEditorLog.WarnImport($"A triangle island (count = {island.Count}) can not be matched with any region bounds, try to increase the RegionDetectionMargin.\n Triangle Ids: {String.Join(", ", island.Select(v => v.ToString()).ToArray())}");
           }
         }
       }
@@ -20803,18 +20876,12 @@ namespace Quantum {
           if (t == tri) {
             continue;
           }
+          
+          var hasV0 = triangles[t].VertexIds[0] == v0 || triangles[t].VertexIds[1] == v0 || triangles[t].VertexIds[2] == v0;
+          var hasV1 = triangles[t].VertexIds[0] == v1 || triangles[t].VertexIds[1] == v1 || triangles[t].VertexIds[2] == v1;
 
-          // Triangle shares at least one vertex?
-          if (triangles[t].VertexIds[0] == v0 || triangles[t].VertexIds[1] == v0 ||
-              triangles[t].VertexIds[2] == v0 || triangles[t].VertexIds[0] == v1 ||
-              triangles[t].VertexIds[1] == v1 || triangles[t].VertexIds[2] == v1) {
-            if (triangles[t].VertexIds[0] == v0 || triangles[t].VertexIds[1] == v0 || triangles[t].VertexIds[2] == v0) {
-              if (triangles[t].VertexIds[0] == v1 || triangles[t].VertexIds[1] == v1 || triangles[t].VertexIds[2] == v1) {
-                // Triangle shares two vertices, not interested in that
-                return -1;
-              }
-            }
-
+          // Triangles share exactly one vertex
+          if (hasV0 ^ hasV1) {
             if (Vector3Double.IsPointBetween(vertices[triangles[t].VertexIds[0]].Position, vertices[v0].Position, vertices[v1].Position, epsilon, epsilonHeight)) {
               // Returns the triangle that has a vertex on the provided segment and the vertex index that lies on it
               triangleVertexIndex = 0;
@@ -20905,7 +20972,7 @@ namespace Quantum {
         var unityNavMeshTriangulation = UnityEngine.AI.NavMesh.CalculateTriangulation();
 
         if (unityNavMeshTriangulation.vertices.Length == 0) {
-          Debug.LogError("Unity NavMesh not found");
+          QuantumEditorLog.ErrorImport("Unity NavMesh not found");
           return null;
         }
 
@@ -20986,6 +21053,12 @@ namespace Quantum {
 
           progressBar?.SetProgress(1);
         }
+
+        // Remove degenerate triangles
+        progressBar?.SetInfo("Removing Degenerate Triangles");
+        progressBar?.SetProgress(0);
+        ImportUtils.RemoveDegenerateTriangles(ref Triangles, p => progressBar?.SetProgress(p));
+        progressBar?.SetProgress(1);
 
         // Import regions
         var unityNavmeshAreaMap = settings.ImportRegionMode == NavmeshRegionImportMode.Simple ? CreateUnityNavmeshAreaMap() : new Dictionary<int, string>();
@@ -21078,9 +21151,9 @@ namespace Quantum {
             var endTriangle = FindTriangleIndex(Vertices, Triangles, settings.LinkErrorCorrection, triangleGrid, ref endPosition);
 
             if (startTriangle == -1) {
-              Debug.LogError($"Could not map start position {startPosition} of navmesh link to a triangle");
+              QuantumEditorLog.ErrorImport($"Could not map start position {startPosition} of navmesh link to a triangle");
             } else if (endTriangle == -1) {
-              Debug.LogError($"Could not map end position {endPosition} of navmesh link to a triangle");
+              QuantumEditorLog.ErrorImport($"Could not map end position {endPosition} of navmesh link to a triangle");
             } else {
               // Add link
 #if QUANTUM_XY
@@ -21105,7 +21178,6 @@ namespace Quantum {
           }
         }
 
-
         result.Vertices = Vertices.Select(v => v.Convert()).ToArray();
         result.Triangles = Triangles.ToArray();
 
@@ -21116,7 +21188,7 @@ namespace Quantum {
         });
         result.Regions = regions.ToArray();
 
-        Debug.LogFormat("Imported Unity NavMesh '{0}', cleaned up {1} vertices, found {2} region(s), found {3} link(s)", name, unityNavMeshTriangulation.vertices.Length - Vertices.Length, result.Regions.Length, result.Links.Length);
+        QuantumEditorLog.LogImport($"Imported Unity NavMesh '{name}', cleaned up {unityNavMeshTriangulation.vertices.Length - Vertices.Length} vertices, found {result.Regions.Length} region(s), found {result.Links.Length} link(s)");
       }
 
       return result;
@@ -21135,7 +21207,7 @@ namespace Quantum {
         foreach (var surface in navmeshSurfaces) {
           var surfaceComponent = surface.GetComponent<Unity.AI.Navigation.NavMeshSurface>();
           if (surfaceComponent == null) {
-            Debug.LogErrorFormat("No NavMeshSurface found on '{0}'", surface.name);
+            QuantumEditorLog.ErrorImport($"No NavMeshSurface found on '{surface.name}'");
           } else {
             if (surfaceComponent.agentTypeID != -1) {
               var settings = UnityEngine.AI.NavMesh.GetSettingsByID(surfaceComponent.agentTypeID);
@@ -21214,14 +21286,21 @@ namespace Quantum {
         var minPosition = new Vector2Double(double.MaxValue, double.MaxValue);
         for (int i = 0; i < vertices.Length; ++i) {
           maxPosition.X = Math.Max(maxPosition.X, vertices[i].Position.X);
-          maxPosition.Y = Math.Max(maxPosition.Y, vertices[i].Position.Z);
           minPosition.X = Math.Min(minPosition.X, vertices[i].Position.X);
+#if QUANTUM_XY
+          maxPosition.Y = Math.Max(maxPosition.Y, vertices[i].Position.Y);
+          minPosition.Y = Math.Min(minPosition.Y, vertices[i].Position.Y);
+#else
+          maxPosition.Y = Math.Max(maxPosition.Y, vertices[i].Position.Z);
           minPosition.Y = Math.Min(minPosition.Y, vertices[i].Position.Z);
+#endif
         }
 
         MaxPosition = maxPosition;
         MinPosition = minPosition;
         CellSize = Math.Max(MaxPosition.X - MinPosition.X, MaxPosition.Y - MinPosition.Y) / CellCount;
+
+        Assert.Always(CellSize > 0, "CellSize must be greater than 0.");
 
         for (int i = 0; i < triangles.Length; ++i) {
           int minCellIndexX = int.MaxValue, maxCellIndexX = int.MinValue, minCellIndexY = int.MaxValue, maxCellIndexY = int.MinValue;
@@ -21229,8 +21308,13 @@ namespace Quantum {
             var pos = vertices[triangles[i].VertexIds[j]].Position;
             minCellIndexX = Math.Min(minCellIndexX, (int)((pos.X - MinPosition.X) / CellSize));
             maxCellIndexX = Math.Max(maxCellIndexX, (int)((pos.X - MinPosition.X) / CellSize));
+#if QUANTUM_XY
+            minCellIndexY = Math.Min(minCellIndexY, (int)((pos.Y - MinPosition.Y) / CellSize));
+            maxCellIndexY = Math.Max(maxCellIndexY, (int)((pos.Y - MinPosition.Y) / CellSize));
+#else
             minCellIndexY = Math.Min(minCellIndexY, (int)((pos.Z - MinPosition.Y) / CellSize));
             maxCellIndexY = Math.Max(maxCellIndexY, (int)((pos.Z - MinPosition.Y) / CellSize));
+#endif
           }
 
           for (int x = minCellIndexX; x <= maxCellIndexX && x >= 0 && x < CellCount; x++) {
@@ -21255,7 +21339,11 @@ namespace Quantum {
 
       // find cell index (expand one cell for error correction)
       var _x = (int)((position.x - triangleGrid.MinPosition.X) / triangleGrid.CellSize);
+#if QUANTUM_XY
+      var _y = (int)((position.y - triangleGrid.MinPosition.Y) / triangleGrid.CellSize);
+#else
       var _y = (int)((position.z - triangleGrid.MinPosition.Y) / triangleGrid.CellSize);
+#endif
       var closestDistance = double.MaxValue;
 
       var xMin = Math.Max(0, _x - additionalCellsToCheck);
@@ -21569,6 +21657,15 @@ namespace Quantum {
 
         // Check height offset to edge
         var closestPoint = ClosestPointOnSegment(p, v0, v1);
+        
+        // Check actual distance to segment
+#if QUANTUM_XY
+        if (Vector2Double.Distance(new Vector2Double(closestPoint.X, closestPoint.Y), new Vector2Double(p.X, p.Y)) > epsilon) {
+#else
+        if (Vector2Double.Distance(new Vector2Double(closestPoint.X, closestPoint.Z), new Vector2Double(p.X, p.Z)) > epsilon) {
+#endif
+          return false;
+        }
 
 #if QUANTUM_XY
         return Math.Abs(closestPoint.Z - p.Z) < epsilonHeight;
@@ -21832,8 +21929,7 @@ namespace Quantum {
           safety += 1;
 
           if (safety > 100000) {
-            Debug.Log("Stuck in endless loop");
-
+            QuantumEditorLog.ErrorImport("Stuck in endless loop");
             break;
           }
 
@@ -21863,10 +21959,17 @@ namespace Quantum {
               }
             }
 
+#if QUANTUM_XY
+            Vector2 aPos = new Vector2(a.position.x, a.position.y);
+            Vector2 bPos = new Vector2(b.position.x, b.position.y);
+            Vector2 cPos = new Vector2(c.position.x, c.position.y);
+            Vector2 dPos = new Vector2(d.position.x, d.position.y);
+#else
             Vector2 aPos = new Vector2(a.position.x, a.position.z);
             Vector2 bPos = new Vector2(b.position.x, b.position.z);
             Vector2 cPos = new Vector2(c.position.x, c.position.z);
             Vector2 dPos = new Vector2(d.position.x, d.position.z);
+#endif
 
             //Use the circle test to test if we need to flip this edge
             if (IsPointInsideOutsideOrOnCircle(aPos, bPos, cPos, dPos) < 0f) {
@@ -21898,7 +22001,7 @@ namespace Quantum {
           }
         }
 
-        Debug.Log("Delaunay triangulation flipped edges: " + flippedEdges);
+        QuantumEditorLog.LogImport($"Delaunay triangulation flipped {flippedEdges} edges");
 
         //Dont have to convert from half edge to triangle because the algorithm will modify the objects, which belongs to the 
         //original triangles, so the triangles have the data we need
@@ -21980,9 +22083,15 @@ namespace Quantum {
         for (int i = 0; i < triangles.Count; i++) {
           Triangle tri = triangles[i];
 
+#if QUANTUM_XY
+          Vector2 v1 = new Vector2(tri.v1.position.x, tri.v1.position.y);
+          Vector2 v2 = new Vector2(tri.v2.position.x, tri.v2.position.y);
+          Vector2 v3 = new Vector2(tri.v3.position.x, tri.v3.position.y);
+#else
           Vector2 v1 = new Vector2(tri.v1.position.x, tri.v1.position.z);
           Vector2 v2 = new Vector2(tri.v2.position.x, tri.v2.position.z);
           Vector2 v3 = new Vector2(tri.v3.position.x, tri.v3.position.z);
+#endif
 
           if (!IsTriangleOrientedClockwise(v1, v2, v3)) {
             tri.ChangeOrientation();
@@ -22325,6 +22434,17 @@ namespace Quantum {
         case ShutdownConnectionOptions.LeaveRoomAndBecomeInactive:
           if (_realtimeClient.State == ClientState.Joined) {
             return _realtimeClient.LeaveRoomAsync(option == ShutdownConnectionOptions.LeaveRoomAndBecomeInactive);
+          }
+
+          if (_realtimeClient.State == ClientState.Leaving || 
+              _realtimeClient.State == ClientState.DisconnectingFromGameServer ||
+              _realtimeClient.State == ClientState.ConnectedToMasterServer) {
+            // Already leaving the room, wait for the result.
+            // This is also a workaround for the session runner async shutdown where inside internal destruction protocols this method was already called.
+            var handler = _realtimeClient.CreateConnectionHandler(false);
+            handler.Disposables.Enqueue(_realtimeClient.CallbackMessage.ListenManual<OnDisconnectedMsg>(m => handler.SetException(new DisconnectException(m.cause))));
+            handler.Disposables.Enqueue(_realtimeClient.CallbackMessage.ListenManual<OnConnectedToMasterMsg>(m => handler.SetResult(Photon.Realtime.ErrorCode.Ok)));
+            return handler.Task;
           }
 
           break;
@@ -23838,6 +23958,7 @@ namespace Quantum {
 #region Assets/Photon/Quantum/Runtime/QuantumUnityTypes.Common.cs
 
 // merged UnityTypes
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
 
 #region QuantumGlobalScriptableObject.cs
 
@@ -24479,6 +24600,7 @@ namespace Quantum {
 
 #endregion
 
+#pragma warning restore CS1574, CS1584, CS1581, CS1580
 
 
 #endregion
@@ -25018,6 +25140,7 @@ namespace Quantum {
 namespace Quantum {
   using System;
   using System.Diagnostics;
+  using System.Runtime.CompilerServices;
   using JetBrains.Annotations;
 #if QUANTUM_ENABLE_MPPM
   using System.Collections.Generic;
@@ -25160,21 +25283,30 @@ namespace Quantum {
         // start the MPE client to await commands
         var client = ChannelClient.GetOrCreateClient(MpeChannelName);
         client.Start(true);
-        var disconnect = client.RegisterMessageHandler(data => {
+        // ReSharper disable once AsyncVoidLambda
+        var disconnect = client.RegisterMessageHandler(async (byte[] data) => {
           var json = System.Text.Encoding.UTF8.GetString(data);
           var message = JsonUtility.FromJson<CommandWrapper>(json);
           
           QuantumEditorLog.TraceMppm($"Received command {message.Data}");
-          message.Data.Execute();
-          if (message.Data.NeedsAck) {
-            var ack = new AckMessage() {
-              Guid = message.Guid
-            };
-            var ackJson = JsonUtility.ToJson(ack);
-            QuantumEditorLog.TraceMppm($"Sending ack {ackJson}");
-            var ackBytes = System.Text.Encoding.UTF8.GetBytes(ackJson);
-            client.Send(ackBytes);
+          try {
+            await message.Data.ExecuteAsync();
+          } catch (Exception ex) {
+            QuantumEditorLog.Error($"Error while handling MPPM message {message.Data.GetType().FullName}: {ex}");
+            return;
           }
+
+          if (!message.Data.NeedsAck) {
+            return;
+          }
+          
+          var ack = new AckMessage() {
+            Guid = message.Guid
+          };
+          var ackJson = JsonUtility.ToJson(ack);
+          QuantumEditorLog.TraceMppm($"Sending ack {ackJson}");
+          var ackBytes = System.Text.Encoding.UTF8.GetBytes(ackJson);
+          client.Send(ackBytes);
         });
         Debug.Assert(disconnect != null);
         
@@ -25183,9 +25315,13 @@ namespace Quantum {
         Debug.Assert(Directory.Exists(mainInstanceCommandsFolderPath));
         foreach (var file in Directory.GetFiles(mainInstanceCommandsFolderPath, "*.json")) {
           var json = File.ReadAllText(file);
-          var wrapper = JsonUtility.FromJson<CommandWrapper>(json);
-          QuantumEditorLog.TraceMppm($"Received persistent command {wrapper.Data}");
-          wrapper.Data.Execute();
+          var message = JsonUtility.FromJson<CommandWrapper>(json);
+          QuantumEditorLog.TraceMppm($"Received persistent command {message.Data}");
+          message.Data.ExecuteAsync().ContinueWith(t => {
+            if (t.IsFaulted) {
+              QuantumEditorLog.Error($"Error while handling persistent MPPM message {message.Data.GetType().FullName}: {t.Exception}");
+            }
+          });
         }
       }
     }
@@ -25281,13 +25417,24 @@ namespace Quantum {
   // ReSharper disable once IdentifierTypo
   public abstract class QuantumMppmCommand {
     /// <summary>
-    /// Execute the command on a virtual instance.
+    /// Execute the command on a virtual instance. Executes synchronously.
     /// </summary>
-    public abstract void Execute();
+    public virtual void Execute() {
+    }
+
+    /// <summary>
+    /// Execute the command on a virtual instance. By default, calls <see cref="Execute"/>
+    /// </summary>
+    public virtual System.Threading.Tasks.Task ExecuteAsync() {
+      Execute();
+      return System.Threading.Tasks.Task.CompletedTask;
+    } 
+    
     /// <summary>
     /// Does the main instance need to wait for an ack?
     /// </summary>
     public virtual bool NeedsAck => false;
+    
     /// <summary>
     /// If the command is persistent (i.e. needs to be executed on each domain reload), this key is used to store it.
     /// </summary>
@@ -25336,6 +25483,28 @@ namespace Quantum {
   }
 }
 #endif
+
+#endregion
+
+
+#region QuantumUnityEditorPaths.cs
+
+namespace Quantum {
+  /// <summary>
+  /// Quantum Unity paths.
+  /// </summary>
+  public static class QuantumUnityEditorPaths {
+    /// <summary>
+    /// Root folder of Quantum installation.
+    /// </summary>
+    public const string Root =
+#if QUANTUM_UPM
+      "Packages/com.photonengine.quantum"
+#else
+      "Assets/Photon/Quantum";
+#endif
+  }
+}
 
 #endregion
 
@@ -25496,7 +25665,7 @@ namespace Quantum {
       return true;
     }
 #endif
-    
+
     /// <summary>
     /// Returns true if <paramref name="scene"/> can be unloaded.
     /// </summary>
@@ -27913,6 +28082,19 @@ namespace Quantum {
     /// <param name="arrowHeadLength">The length of the arrow head (default is DefaultArrowHeadLength).</param>
     /// <param name="arrowHeadAngle">The angle of the arrow head (default is DefaultArrowHeadAngle).</param>
     public static void DrawGizmoVector(Vector3 start, Vector3 end, float arrowHeadLength = DefaultArrowHeadLength, float arrowHeadAngle = DefaultArrowHeadAngle) {
+      DrawGizmoVector(start, end, arrowHeadLength, arrowHeadAngle, out var direction);
+    }
+
+
+    /// <summary>
+    /// Draws a vector gizmo from the specified start point to the specified end point.
+    /// </summary>
+    /// <param name="start">The starting point of the vector.</param>
+    /// <param name="end">The ending point of the vector.</param>
+    /// <param name="arrowHeadLength">The length of the arrow head.</param>
+    /// <param name="arrowHeadAngle">The angle of the arrow head.</param>
+    /// <param name="direction">The calculated direction vector.</param>
+    public static void DrawGizmoVector(Vector3 start, Vector3 end, float arrowHeadLength, float arrowHeadAngle, out Vector3 direction) {
       Gizmos.DrawLine(start, end);
 
       var l = (start - end).magnitude;
@@ -27921,29 +28103,29 @@ namespace Quantum {
         arrowHeadLength = l / 2;
       }
 
-      var d = (start - end).normalized;
+      direction = (start - end).normalized;
 
       float cos = Mathf.Cos(arrowHeadAngle * Mathf.Deg2Rad);
       float sin = Mathf.Sin(arrowHeadAngle * Mathf.Deg2Rad);
 
       Vector3 left = Vector3.zero;
 #if QUANTUM_XY
-      left.x = d.x * cos - d.y * sin;
-      left.y = d.x * sin + d.y * cos;
+      left.x = direction.x * cos - direction.y * sin;
+      left.y = direction.x * sin + direction.y * cos;
 #else
-      left.x = d.x * cos - d.z * sin;
-      left.z = d.x * sin + d.z * cos;
+      left.x = direction.x * cos - direction.z * sin;
+      left.z = direction.x * sin + direction.z * cos;
 #endif
 
       sin = -sin;
 
       Vector3 right = Vector3.zero;
 #if QUANTUM_XY
-      right.x = d.x * cos - d.y * sin;
-      right.y = d.x * sin + d.y * cos;
+      right.x = direction.x * cos - direction.y * sin;
+      right.y = direction.x * sin + direction.y * cos;
 #else
-      right.x = d.x * cos - d.z * sin;
-      right.z = d.x * sin + d.z * cos;
+      right.x = direction.x * cos - direction.z * sin;
+      right.z = direction.x * sin + direction.z * cos;
 #endif
 
       Gizmos.DrawLine(end, end + left * arrowHeadLength);
@@ -28220,7 +28402,11 @@ namespace Quantum {
           result += ($"{section.Name} took {section.TimeInMs} ms" + "\n");
         }
 
+#if UNITY_EDITOR
+        QuantumEditorLog.LogImport(result);
+#else
         Log.Debug(result);
+#endif
       }
     }
 

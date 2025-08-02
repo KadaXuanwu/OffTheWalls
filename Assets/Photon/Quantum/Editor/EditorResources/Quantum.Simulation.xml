@@ -2405,6 +2405,11 @@
             <param name="runner">Session runner object.</param>
             <param name="cause">Shutdown code.</param>
         </member>
+        <member name="M:Quantum.SessionRunner.WrapShutdownAsync">
+            <summary>
+            The method is used to enable exception logging inside the Async call when invoked from the non-async Service() method.
+            </summary>
+        </member>
         <member name="T:Quantum.SessionRunner.Arguments">
             <summary>
             Arguments to start an online or offline Quantum simulation.
@@ -4533,9 +4538,10 @@
             reducing memory allocations and the time spent copying states over.
             </summary>
         </member>
-        <member name="F:Quantum.QuantumGameFlags.EnableTaskProfiler">
+        <member name="F:Quantum.QuantumGameFlags.DisableMemoryIntegrityCheck">
             <summary>
-            Set this flag to enables the Quantum task profiler in debug or release configurations.
+            Enable this flag to disable the memory integrity check during Quantum startup.
+            It's highly recommended to only disable this in tested release builds.
             </summary>
         </member>
         <member name="F:Quantum.QuantumGameFlags.CustomFlagsStart">

@@ -1777,6 +1777,11 @@ namespace Quantum {
     internal void ResetPhysics() {
       ResetPhysicsCodeGen();
     }
+
+    protected override void ResetPlayerMapping() {
+      _playerData = new PersistentMap<int, RuntimePlayerData>();
+      PlayerLastConnectionState.ClearAll();
+    }
   }
 }
 
@@ -3251,6 +3256,7 @@ namespace Quantum {
       SnapshotsOnDestroy();
       InvokeOnDestroy();
       CheckTrackedHeapAllocations();
+      StopRecording();
     }
 
     /// <summary>
@@ -3648,12 +3654,16 @@ namespace Quantum {
       }
 
       // verify all types
-      var verifier = new MemoryLayoutVerifier(MemoryLayoutVerifier.Platform ?? new MemoryLayoutVerifier.DefaultPlatform());
-      var result = verifier.Verify(_typeRegistry.Types);
-      if (result.Count > 0) {
-        throw new Exception("MemoryIntegrity Check Failed: " + System.Environment.NewLine + String.Join(System.Environment.NewLine, result.ToArray()));
-      } else {
-        Log.Debug("Memory Integrity Verified");
+      if ((GameFlags & QuantumGameFlags.DisableMemoryIntegrityCheck) == 0) {
+        HostProfiler.Start("MemoryIntegrityCheck");
+        var verifier = new MemoryLayoutVerifier(MemoryLayoutVerifier.Platform ?? new MemoryLayoutVerifier.DefaultPlatform());
+        var result = verifier.Verify(_typeRegistry.Types);
+        HostProfiler.End();
+        if (result.Count > 0) {
+          throw new Exception("MemoryIntegrity Check Failed: " + System.Environment.NewLine + String.Join(System.Environment.NewLine, result.ToArray()));
+        } else {
+          Log.Info("Memory Integrity Verified");
+        }
       }
     }
 
@@ -4069,8 +4079,9 @@ namespace Quantum {
     /// <see cref="RecordingFlags.Input"/> and <see cref="DeterministicSessionConfig.InputDeltaCompression"/> is enabled.
     /// The recording can also be started by calling <see cref="StartRecordingInput"/> manually.    /// </summary>
     public Stream RecordInputStream { get; set; }
-    
+
     ChecksumFile _checksumsToVerify;
+    bool _hasPrivateRecordInputStream;
 
     /// <summary>
     /// Get a recorded frame for a given frame number from the checksum or instant replay snapshot buffers.
@@ -4267,6 +4278,7 @@ namespace Quantum {
         if (RecordInputStream == null) {
           // Create memory stream when no input stream was set
           RecordInputStream = new MemoryStream(1024 * 1024);
+          _hasPrivateRecordInputStream = true;
         }
       } else {
         if (RecordedInputs == null) {
@@ -4319,6 +4331,16 @@ namespace Quantum {
       }
 
       _instantReplaySnapshotsRecording = true;
+    }
+
+    void StopRecording() {
+      RecordedInputs = null;
+      RecordedChecksums = null;
+      if (_hasPrivateRecordInputStream) {
+        RecordInputStream?.Dispose();
+      }
+      RecordInputStream = null;
+      _checksumsToVerify = null;
     }
   }
 }
@@ -5508,15 +5530,23 @@ namespace Quantum {
     /// reducing memory allocations and the time spent copying states over.
     /// </summary>
     public const int DisableInterpolatableStates = 1 << 2;
-    /// <summary>
-    /// Set this flag to enables the Quantum task profiler in debug or release configurations.
-    /// </summary>
     [Obsolete("No longer used")]
     public const int EnableTaskProfiler = 1 << 3;
+    [Obsolete("No longer used")]
+    public const int InitSystemsBeforeCallbackGameStarted = 1 << 3;
+    /// <summary>
+    /// Enable this flag to disable the memory integrity check during Quantum startup.
+    /// It's highly recommended to only disable this in tested release builds.
+    /// </summary>
+    public const int DisableMemoryIntegrityCheck = 1 << 4;
+    [Obsolete("No longer used")]
+    public const int UseLegacySystemStartEnabledMode = 1 << 5;
     /// <summary>
     /// Custom user flags start from this value. Flags are accessible with <see cref="QuantumGame.GameFlags"/>.
     /// </summary>
     public const int CustomFlagsStart = 1 << 16;
+
+
   }
 }
 
@@ -7389,7 +7419,7 @@ namespace Quantum {
     /// <summary>
     /// Returns the session.
     /// </summary>
-    public DeterministicSession Session => Runner?.Session;
+    public DeterministicSession Session => Runner ? Runner.Session : null;
 
     /// <summary>
     /// Add an initial dynamic asset. Needs to be performed before the simulation starts. Use DeterministicServer.OnDeterministicSessionCanStart().
@@ -7931,13 +7961,12 @@ namespace Quantum {
         _updateDb?.Invoke();
       }
 
-      if (_waitForShutdownStart != null) {
-        _waitForShutdownStart.TrySetResult(true);
-      }
+      _waitForShutdownStart?.TrySetResult(true);
 
       if (_shutdownRequested) {
         _shutdownRequested = false;
-        Shutdown();
+        // Calling async here is ugly, but it helps with disconnecting gracefully (connection needs a couple service() calls to properly complete)
+        WrapShutdownAsync();
       }
     }
 
@@ -8037,7 +8066,7 @@ namespace Quantum {
       if (_inSessionUpdate) {
       // If called from inside session we want to wait until we are back inside the Unity thread. Maybe from Update().
         _shutdownRequested = true;
-        Log.Warn("Shutdown requested during session update, postponing execution");
+        Log.Info("Shutdown requested during session update, postponing execution");
         return;
       }
 
@@ -8060,14 +8089,6 @@ namespace Quantum {
     /// <returns>Once the complete shutdown is completed.</returns>
     /// <exception cref="SessionRunnerException">TaskFactory was never set.</exception>
     public System.Threading.Tasks.Task ShutdownAsync(ShutdownCause cause = ShutdownCause.Ok) {
-      if (TaskFactory == null) {
-        throw new SessionRunnerException("TaskFactory required");
-      }
-
-      if (TaskFactory.Scheduler == null) {
-        throw new SessionRunnerException("TaskFactory.Scheduler required");
-      }
-
       switch (State) {
         case SessionState.Shutdown:
           return System.Threading.Tasks.Task.CompletedTask;
@@ -8078,6 +8099,14 @@ namespace Quantum {
             Log.Warn("Cannot await shutdown");
             return System.Threading.Tasks.Task.CompletedTask;
           }
+      }
+
+      if (TaskFactory == null) {
+        throw new SessionRunnerException("TaskFactory required");
+      }
+
+      if (TaskFactory.Scheduler == null) {
+        throw new SessionRunnerException("TaskFactory.Scheduler required");
       }
 
       State = SessionState.ShuttingDown;
@@ -8097,9 +8126,8 @@ namespace Quantum {
       }
 
       // disconnect
-      // TODO: check if this could delay the shutdown unnecessarily during connection hick-ups
       if (Communicator != null) {
-        result = result.ContinueWith(t => Communicator.OnDestroyAsync(), TaskFactory.Scheduler);
+        result = result.ContinueWith(t => Communicator.OnDestroyAsync(), TaskFactory.Scheduler).Unwrap();
       }
 
       // finally set state and signal shutdown completion
@@ -8259,6 +8287,13 @@ namespace Quantum {
 
       runner._taskFactory = null;
       runner._updateDb = null;
+    }
+
+    /// <summary>
+    /// The method is used to enable exception logging inside the Async call when invoked from the non-async Service() method.
+    /// </summary>
+    private async void WrapShutdownAsync() {
+      await ShutdownAsync(ShutdownCause.Ok);
     }
   }
 }
@@ -9165,17 +9200,14 @@ namespace Quantum.Task {
         var sliceIndex = Interlocked.Increment(ref _sliceIndexer);
 
         // reset iterator
-        iterator.Reset(sliceIndex * _sliceSize, _sliceSize);
-
-        // execute filter loop
-        if (iterator.Next(&filter) == false) {
+        if (iterator.Reset(sliceIndex * _sliceSize, _sliceSize) == false) {
           // chunk is out of buffer range, we're done
           return;
         }
 
-        do {
+        while (iterator.Next(&filter)) {
           Update(f, ref filter);
-        } while (iterator.Next(&filter));
+        }
       }
     }
 

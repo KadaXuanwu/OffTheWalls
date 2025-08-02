@@ -525,7 +525,7 @@
         </member>
         <member name="M:Quantum.QuantumEditorLog.TraceImport(System.String)">
             <summary>
-            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE is defined. Use in the Import context.
+            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE_IMPORT is defined. Use in the Import context.
             </summary>
             <param name="msg">A message</param>
         </member>
@@ -549,7 +549,7 @@
         </member>
         <member name="M:Quantum.QuantumEditorLog.TraceInspector(System.String)">
             <summary>
-            Logs a message to the Unity console if QUANTUM_EDITOR_INSPECTOR_TRACE is defined. Use in the Inspector context.
+            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE_INSPECTOR is defined. Use in the Inspector context.
             </summary>
             <param name="msg">A message</param>
         </member>
@@ -573,13 +573,13 @@
         </member>
         <member name="M:Quantum.QuantumEditorLog.TraceTest(System.String)">
             <summary>
-            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE is defined. Use in the Test context.
+            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE_TEST is defined. Use in the Test context.
             </summary>
             <param name="msg">A message</param>
         </member>
         <member name="M:Quantum.QuantumEditorLog.TraceMppm(System.String)">
             <summary>
-            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE is defined. Use in the Mppm context.
+            Logs a message to the Unity console if QUANTUM_EDITOR_TRACE_MPPM is defined. Use in the Mppm context.
             </summary>
             <param name="msg">A message</param>
         </member>
@@ -625,25 +625,20 @@
             <param name="args"></param>
             <exception cref="T:Quantum.AssertException"></exception>
         </member>
-        <member name="M:Quantum.Assert.Check(System.Object)">
+        <member name="M:Quantum.Assert.Check(System.Object,System.String)">
             <summary>
             Throws an AssertException if the <paramref name="condition"/> is <c>null</c>
             </summary>
             <param name="condition">Value to check</param>
+            <param name="error">An error message</param>
             <exception cref="T:Quantum.AssertException"></exception>
         </member>
-        <member name="M:Quantum.Assert.Check(System.Void*)">
+        <member name="M:Quantum.Assert.Check(System.Void*,System.String)">
             <summary>
             Throws an AssertException if the <paramref name="condition"/> is <c>null</c>
             </summary>
             <param name="condition">Value to check</param>
-            <exception cref="T:Quantum.AssertException"></exception>
-        </member>
-        <member name="M:Quantum.Assert.Check(System.Boolean)">
-            <summary>
-            Throws an AssertException if the <paramref name="condition"/> is <see langword="false"/>
-            </summary>
-            <param name="condition">Value to check</param>
+            <param name="error">An error message</param>
             <exception cref="T:Quantum.AssertException"></exception>
         </member>
         <member name="M:Quantum.Assert.Check(System.Boolean,System.String)">
@@ -748,13 +743,6 @@
             <param name="error">An error message</param>
             <exception cref="T:Quantum.AssertException"></exception>
         </member>
-        <member name="M:Quantum.Assert.Always(System.Boolean)">
-            <summary>
-            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
-            </summary>
-            <param name="condition">Value to check</param>
-            <exception cref="T:Quantum.AssertException"></exception>
-        </member>
         <member name="M:Quantum.Assert.Always(System.Boolean,System.String)">
             <summary>
             Throws an AssertException with a message if <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
@@ -835,7 +823,6 @@
             Logs an assertion if the <paramref name="condition"/> is <see langword="false"/>. For Unity builds, log goes straight to UnityEngine.Debug. Otherwise, log goes to LogError stream.
             </summary>
             <param name="condition">Value to check</param>
-            <param name="format"></param>
         </member>
         <member name="M:Quantum.Assert.Log``2(System.Boolean,System.String,``0,``1)">
             <summary>

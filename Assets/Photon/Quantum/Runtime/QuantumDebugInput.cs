@@ -27,6 +27,7 @@ namespace Quantum {
       i.Attack = playerInput.actions["Attack"].inProgress;
       i.SwitchWeapon = playerInput.actions["SwitchWeapon"].inProgress;
       i.ShowTrajectory = Mouse.current.rightButton.isPressed;
+      Debug.Log(movement);
 
       Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
       Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));

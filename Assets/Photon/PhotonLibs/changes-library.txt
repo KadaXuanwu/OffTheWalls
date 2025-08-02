@@ -3,6 +3,17 @@ Photon C# Client Library - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 5.1.6 (01. Juli 2025 - rev7991)
+    Added: SupportClass overload for CalculateCrc() with offset.
+    Changed: CalculateCrc() without offset is now obsolete.
+	Internal: Worked on sequential acknowledgements (a.k.a. ACK2). Some refactoring and internal implentation details apply to all command handling, even if this feature is not released yet.
+	Changed: Send Window in SerializeToBuffer(). If a fragment's start-sequence number is inside the Send Window, related fragments can be sent.
+	Changed: Channel outgoingReliableCommandsList and outgoingUnreliableCommandsList are now of type List<NCommand>. Allows skip over individual entries.
+	Added: PeerBase.bestRoundtripTimeout to track the session's best resend-timeout.
+	Added: PeerBase.throttledBySendWindow debug value to count how often reliable sequenced commands are not sent due to lacking acknowledgements.
+	Added: PeerBase.rttVarString property to provide a formatted rtt/variance string. This is updated on access.
+	Changed: EnetPeer SendWindow is only applied to sequenced reliable commands. It does not apply to unsequenced reliable commands, because the server has a longer queue for those.
+
 Version 5.1.5 (24. April 2025 - rev7920)
     Fixed: Bug in QueueIncomingCommand() which allowed duplicates of commands being queued. This affected fragment reassembly, leading to exceptions and disconnects. This bug has been in v5.1.3 and v5.1.4.
     

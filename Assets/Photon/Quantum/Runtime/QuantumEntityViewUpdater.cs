@@ -572,7 +572,7 @@ namespace Quantum {
 
     private void OnEntityViewInstantiated(QuantumGame game, Frame frame, QuantumEntityView instance, EntityRef handle) {
       if ((instance.ViewFlags & QuantumEntityViewFlags.DisableEntityRefNaming) == 0) {
-        instance.gameObject.name = handle.ToString();
+        instance.gameObject.name = handle.GetName(frame);
       }
 
       instance.EntityRef = handle;

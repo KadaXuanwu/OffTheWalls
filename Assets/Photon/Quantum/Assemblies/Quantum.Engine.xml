@@ -3366,7 +3366,17 @@
             Represents an attribute that can be applied to a field to indicate that it is a dictionary property.
             </summary>
         </member>
+        <member name="M:Quantum.DictionaryAttribute.#ctor">
+            <summary>
+            Represents an attribute that can be applied to a field to indicate that it is a dictionary property.
+            </summary>
+        </member>
         <member name="T:Quantum.DynamicCollectionAttribute">
+            <summary>
+            Marks a collection field as source for a Quantum heap-based collection. Automatically applied by CodeGen.
+            </summary>
+        </member>
+        <member name="M:Quantum.DynamicCollectionAttribute.#ctor">
             <summary>
             Marks a collection field as source for a Quantum heap-based collection. Automatically applied by CodeGen.
             </summary>
@@ -5868,6 +5878,21 @@
             Gets the current key-value pair in the <see cref="T:Quantum.Collections.QDictionary`2"/> based in the iterator state.
             </summary>
         </member>
+        <member name="P:Quantum.Collections.QDictionaryIterator`2.Key">
+            <summary>
+            Returns a readonly ref to the current key based on the iterator current element.
+            </summary>
+        </member>
+        <member name="P:Quantum.Collections.QDictionaryIterator`2.Value">
+            <summary>
+            Returns a readonly ref to the current value based on the iterator current element.
+            </summary>
+        </member>
+        <member name="P:Quantum.Collections.QDictionaryIterator`2.KeyPtrUnsafe">
+            <summary>
+            Returns a pointer to the current key based on the iterator current element.
+            </summary>
+        </member>
         <member name="P:Quantum.Collections.QDictionaryIterator`2.ValuePtrUnsafe">
             <summary>
             Returns a pointer to the current value based on the iterator current element.
@@ -6805,16 +6830,6 @@
             Prototype of the <see cref="T:Quantum.Transform2D"/> Quantum component.
             </summary>
         </member>
-        <member name="F:Quantum.Prototypes.Transform2DPrototype.Position">
-            <summary>
-            The entity's position.
-            </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.Transform2DPrototype.Rotation">
-            <summary>
-            The entity's rotation, in degrees.
-            </summary>
-        </member>
         <member name="M:Quantum.Prototypes.Transform2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Creates an instance of the <see cref="T:Quantum.Transform2D"/> component, materializes and adds it to the entity.
@@ -6825,25 +6840,26 @@
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
         <member name="M:Quantum.Prototypes.Transform2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform2D@)">
-            <summary>
-            Applies the prototype's fields to the actual component.
-            </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
+            <inheritdoc cref="M:Quantum.Prototypes.Transform2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform2D@,Quantum.PrototypeMaterializationContext@)"/>
         </member>
-        <member name="T:Quantum.Prototypes.Transform3DPrototype">
-            <summary>
-            Prototype of the <see cref="T:Quantum.Transform3D"/> Quantum component.
-            </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.Transform3DPrototype.Position">
+        <member name="F:Quantum.Prototypes.Transform2DPrototype.Position">
             <summary>
             The entity's position.
             </summary>
         </member>
-        <member name="F:Quantum.Prototypes.Transform3DPrototype.Rotation">
+        <member name="F:Quantum.Prototypes.Transform2DPrototype.Rotation">
             <summary>
             The entity's rotation, in degrees.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.Transform2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform2D@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Applies the prototype's fields to the actual component.
+            </summary>
+        </member>
+        <member name="T:Quantum.Prototypes.Transform3DPrototype">
+            <summary>
+            Prototype of the <see cref="T:Quantum.Transform3D"/> Quantum component.
             </summary>
         </member>
         <member name="M:Quantum.Prototypes.Transform3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
@@ -6856,25 +6872,26 @@
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
         <member name="M:Quantum.Prototypes.Transform3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform3D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.Transform3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform3D@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.Transform3DPrototype.Position">
+            <summary>
+            The entity's position.
+            </summary>
+        </member>
+        <member name="F:Quantum.Prototypes.Transform3DPrototype.Rotation">
+            <summary>
+            The entity's rotation, in degrees.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.Transform3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform3D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
         <member name="T:Quantum.Prototypes.Transform2DVerticalPrototype">
             <summary>
             Prototype of the <see cref="T:Quantum.Transform2DVertical"/> Quantum component.
-            </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.Transform2DVerticalPrototype.Position">
-            <summary>
-            The vertical offset position.
-            </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.Transform2DVerticalPrototype.Height">
-            <summary>
-            The vertical height.
             </summary>
         </member>
         <member name="M:Quantum.Prototypes.Transform2DVerticalPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
@@ -6887,16 +6904,39 @@
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
         <member name="M:Quantum.Prototypes.Transform2DVerticalPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform2DVertical@)">
+            <inheritdoc cref="M:Quantum.Prototypes.Transform2DVerticalPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform2DVertical@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.Transform2DVerticalPrototype.Position">
+            <summary>
+            The vertical offset position.
+            </summary>
+        </member>
+        <member name="F:Quantum.Prototypes.Transform2DVerticalPrototype.Height">
+            <summary>
+            The vertical height.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.Transform2DVerticalPrototype.Materialize(Quantum.Core.FrameBase,Quantum.Transform2DVertical@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
         <member name="T:Quantum.Prototypes.PhysicsCollider2DPrototype">
             <summary>
             Prototype of the <see cref="T:Quantum.PhysicsCollider2D"/> Quantum component.
             </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsCollider2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Creates an instance of the <see cref="T:Quantum.PhysicsCollider2D"/> component, materializes and adds it to the entity.
+            </summary>
+            <param name="f"></param>
+            <param name="entity"></param>
+            <param name="context"></param>
+            <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsCollider2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider2D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.PhysicsCollider2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider2D@,Quantum.PrototypeMaterializationContext@)"/>
         </member>
         <member name="F:Quantum.Prototypes.PhysicsCollider2DPrototype.ShapeConfig">
             <summary>
@@ -6918,26 +6958,27 @@
             The physics collider's physics material asset.
             </summary>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsCollider2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider2D@)">
+        <member name="M:Quantum.Prototypes.PhysicsCollider2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider2D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsCollider2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+        <member name="T:Quantum.Prototypes.PhysicsBody2DPrototype">
             <summary>
-            Creates an instance of the <see cref="T:Quantum.PhysicsCollider2D"/> component, materializes and adds it to the entity.
+            Prototype of the <see cref="T:Quantum.PhysicsBody2D"/> Quantum component.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsBody2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Creates an instance of the <see cref="T:Quantum.PhysicsBody2D"/> component, materializes and adds it to the entity.
             </summary>
             <param name="f"></param>
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
-        <member name="T:Quantum.Prototypes.PhysicsBody2DPrototype">
-            <summary>
-            Prototype of the <see cref="T:Quantum.PhysicsBody2D"/> Quantum component.
-            </summary>
+        <member name="M:Quantum.Prototypes.PhysicsBody2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody2D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.PhysicsBody2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody2D@,Quantum.PrototypeMaterializationContext@)"/>
         </member>
         <member name="F:Quantum.Prototypes.PhysicsBody2DPrototype.Config">
             <summary>
@@ -6989,26 +7030,27 @@
             The parametric shape used to compute the body inertia tensor when <see cref="F:Quantum.Prototypes.PhysicsBody2DPrototype.InertiaMode"/> is set to <see cref="F:Quantum.Prototypes.PhysicsBodyInertiaMode.ParametricShape"/>. 
             </summary>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsBody2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody2D@)">
+        <member name="M:Quantum.Prototypes.PhysicsBody2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody2D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsBody2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+        <member name="T:Quantum.Prototypes.PhysicsCollider3DPrototype">
             <summary>
-            Creates an instance of the <see cref="T:Quantum.PhysicsBody2D"/> component, materializes and adds it to the entity.
+            Prototype of the <see cref="T:Quantum.PhysicsCollider3D"/> Quantum component.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsCollider3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Creates an instance of the <see cref="T:Quantum.PhysicsCollider3D"/> component, materializes and adds it to the entity.
             </summary>
             <param name="f"></param>
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
-        <member name="T:Quantum.Prototypes.PhysicsCollider3DPrototype">
-            <summary>
-            Prototype of the <see cref="T:Quantum.PhysicsCollider3D"/> Quantum component.
-            </summary>
+        <member name="M:Quantum.Prototypes.PhysicsCollider3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider3D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.PhysicsCollider3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider3D@,Quantum.PrototypeMaterializationContext@)"/>
         </member>
         <member name="F:Quantum.Prototypes.PhysicsCollider3DPrototype.ShapeConfig">
             <summary>
@@ -7030,26 +7072,27 @@
             The physics collider's physics material asset.
             </summary>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsCollider3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider3D@)">
+        <member name="M:Quantum.Prototypes.PhysicsCollider3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsCollider3D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsCollider3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+        <member name="T:Quantum.Prototypes.PhysicsBody3DPrototype">
             <summary>
-            Creates an instance of the <see cref="T:Quantum.PhysicsCollider3D"/> component, materializes and adds it to the entity.
+            Prototype of the <see cref="T:Quantum.PhysicsBody3D"/> Quantum component.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsBody3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Creates an instance of the <see cref="T:Quantum.PhysicsBody3D"/> component, materializes and adds it to the entity.
             </summary>
             <param name="f"></param>
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
-        <member name="T:Quantum.Prototypes.PhysicsBody3DPrototype">
-            <summary>
-            Prototype of the <see cref="T:Quantum.PhysicsBody3D"/> Quantum component.
-            </summary>
+        <member name="M:Quantum.Prototypes.PhysicsBody3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody3D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.PhysicsBody3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody3D@,Quantum.PrototypeMaterializationContext@)"/>
         </member>
         <member name="F:Quantum.Prototypes.PhysicsBody3DPrototype.Config">
             <summary>
@@ -7106,30 +7149,14 @@
             The parametric shape used to compute the body inertia tensor when <see cref="F:Quantum.Prototypes.PhysicsBody3DPrototype.InertiaMode"/> is set to <see cref="F:Quantum.Prototypes.PhysicsBodyInertiaMode.ParametricShape"/>. 
             </summary>
         </member>
-        <member name="M:Quantum.Prototypes.PhysicsBody3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody3D@)">
+        <member name="M:Quantum.Prototypes.PhysicsBody3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsBody3D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
-        </member>
-        <member name="M:Quantum.Prototypes.PhysicsBody3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
-            <summary>
-            Creates an instance of the <see cref="T:Quantum.PhysicsBody3D"/> component, materializes and adds it to the entity.
-            </summary>
-            <param name="f"></param>
-            <param name="entity"></param>
-            <param name="context"></param>
-            <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
         <member name="T:Quantum.Prototypes.PhysicsJoints2DPrototype">
             <summary>
             Prototype of the <see cref="T:Quantum.PhysicsJoints2D"/> Quantum component.
-            </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.PhysicsJoints2DPrototype.JointConfigs">
-            <summary>
-            The configurations of the joints.
             </summary>
         </member>
         <member name="M:Quantum.Prototypes.PhysicsJoints2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
@@ -7140,6 +7167,14 @@
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsJoints2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsJoints2D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.PhysicsJoints2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsJoints2D@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.PhysicsJoints2DPrototype.JointConfigs">
+            <summary>
+            The configurations of the joints.
+            </summary>
         </member>
         <member name="M:Quantum.Prototypes.PhysicsJoints2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsJoints2D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
@@ -7162,11 +7197,6 @@
             Prototype of the <see cref="T:Quantum.PhysicsJoints3D"/> Quantum component.
             </summary>
         </member>
-        <member name="F:Quantum.Prototypes.PhysicsJoints3DPrototype.JointConfigs">
-            <summary>
-            The configurations of the joints.
-            </summary>
-        </member>
         <member name="M:Quantum.Prototypes.PhysicsJoints3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Creates an instance of the <see cref="T:Quantum.PhysicsJoints3D"/> component, materializes and adds it to the entity.
@@ -7175,6 +7205,14 @@
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
+        </member>
+        <member name="M:Quantum.Prototypes.PhysicsJoints3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsJoints3D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.PhysicsJoints3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsJoints3D@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.PhysicsJoints3DPrototype.JointConfigs">
+            <summary>
+            The configurations of the joints.
+            </summary>
         </member>
         <member name="M:Quantum.Prototypes.PhysicsJoints3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.PhysicsJoints3D@,Quantum.PrototypeMaterializationContext@)">
             <summary>
@@ -7235,18 +7273,6 @@
             Prototype of the <see cref="T:Quantum.CharacterController2D"/> Quantum component.
             </summary>
         </member>
-        <member name="F:Quantum.Prototypes.CharacterController2DPrototype.Config">
-            <summary>
-            The CharacterController2D configuration asset.
-            </summary>
-        </member>
-        <member name="M:Quantum.Prototypes.CharacterController2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController2D@)">
-            <summary>
-            Applies the prototype's fields to the actual component.
-            </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
-        </member>
         <member name="M:Quantum.Prototypes.CharacterController2DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Creates an instance of the <see cref="T:Quantum.CharacterController2D"/> component, materializes and adds it to the entity.
@@ -7256,22 +7282,23 @@
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
+        <member name="M:Quantum.Prototypes.CharacterController2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController2D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.CharacterController2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController2D@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.CharacterController2DPrototype.Config">
+            <summary>
+            The CharacterController2D configuration asset.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.CharacterController2DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController2D@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Applies the prototype's fields to the actual component.
+            </summary>
+        </member>
         <member name="T:Quantum.Prototypes.CharacterController3DPrototype">
             <summary>
             Prototype of the <see cref="T:Quantum.CharacterController3D"/> Quantum component.
             </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.CharacterController3DPrototype.Config">
-            <summary>
-            The CharacterController3D configuration asset.
-            </summary>
-        </member>
-        <member name="M:Quantum.Prototypes.CharacterController3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController3D@)">
-            <summary>
-            Applies the prototype's fields to the actual component.
-            </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
         <member name="M:Quantum.Prototypes.CharacterController3DPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
             <summary>
@@ -7281,6 +7308,19 @@
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
+        </member>
+        <member name="M:Quantum.Prototypes.CharacterController3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController3D@)">
+            <inheritdoc cref="M:Quantum.Prototypes.CharacterController3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController3D@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.CharacterController3DPrototype.Config">
+            <summary>
+            The CharacterController3D configuration asset.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.CharacterController3DPrototype.Materialize(Quantum.Core.FrameBase,Quantum.CharacterController3D@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Applies the prototype's fields to the actual component.
+            </summary>
         </member>
         <member name="T:Quantum.Prototypes.NavMeshPathfinderPrototype">
             <summary>
@@ -7365,17 +7405,37 @@
         </member>
         <member name="M:Quantum.Prototypes.NavMeshAvoidanceAgentPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
             <summary>
-            Creates an instance of the <see cref="T:Quantum.NavMeshAvoidanceAgent"/> component, and adds it to the entity.
+            Creates an instance of the <see cref="T:Quantum.NavMeshAvoidanceAgent"/> component, materializes and adds it to the entity.
             </summary>
             <param name="f"></param>
             <param name="entity"></param>
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
+        <member name="M:Quantum.Prototypes.NavMeshAvoidanceAgentPrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceAgent@)">
+            <inheritdoc cref="M:Quantum.Prototypes.NavMeshAvoidanceAgentPrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceAgent@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="M:Quantum.Prototypes.NavMeshAvoidanceAgentPrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceAgent@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Applies the prototype's fields to the actual component.
+            </summary>
+        </member>
         <member name="T:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype">
             <summary>
             Prototype of the <see cref="T:Quantum.NavMeshAvoidanceObstacle"/> Quantum component.
             </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Creates an instance of the <see cref="T:Quantum.NavMeshAvoidanceObstacle"/> component, materializes and adds it to the entity.
+            </summary>
+            <param name="f"></param>
+            <param name="entity"></param>
+            <param name="context"></param>
+            <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
+        </member>
+        <member name="M:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceObstacle@)">
+            <inheritdoc cref="M:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceObstacle@,Quantum.PrototypeMaterializationContext@)"/>
         </member>
         <member name="F:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.AvoidanceLayer">
             <summary>
@@ -7392,38 +7452,15 @@
             If set to <see langword="true"/>, the obstacle is considered by avoidance agents.
             </summary>
         </member>
-        <member name="M:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
-            <summary>
-            Creates an instance of the <see cref="T:Quantum.NavMeshAvoidanceObstacle"/> component, materializes and adds it to the entity.
-            </summary>
-            <param name="f"></param>
-            <param name="entity"></param>
-            <param name="context"></param>
-            <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
-        </member>
-        <member name="M:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceObstacle@)">
+        <member name="M:Quantum.Prototypes.NavMeshAvoidanceObstaclePrototype.Materialize(Quantum.Core.FrameBase,Quantum.NavMeshAvoidanceObstacle@,Quantum.PrototypeMaterializationContext@)">
             <summary>
             Applies the prototype's fields to the actual component.
             </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
         <member name="T:Quantum.Prototypes.ViewPrototype">
             <summary>
             Prototype of the <see cref="T:Quantum.View"/> Quantum component.
             </summary>
-        </member>
-        <member name="F:Quantum.Prototypes.ViewPrototype.Current">
-            <summary>
-            The EntityView asset to be referenced by the View component.
-            </summary>
-        </member>
-        <member name="M:Quantum.Prototypes.ViewPrototype.Materialize(Quantum.Core.FrameBase,Quantum.View@)">
-            <summary>
-            Applies the prototype's fields to the actual component.
-            </summary>
-            <param name="frame"></param>
-            <param name="result"></param>
         </member>
         <member name="M:Quantum.Prototypes.ViewPrototype.AddToEntity(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.PrototypeMaterializationContext@)">
             <summary>
@@ -7434,7 +7471,25 @@
             <param name="context"></param>
             <returns>Returns <see langword="true"/> if adding the component to the entity succeeds.</returns>
         </member>
+        <member name="M:Quantum.Prototypes.ViewPrototype.Materialize(Quantum.Core.FrameBase,Quantum.View@)">
+            <inheritdoc cref="M:Quantum.Prototypes.ViewPrototype.Materialize(Quantum.Core.FrameBase,Quantum.View@,Quantum.PrototypeMaterializationContext@)"/>
+        </member>
+        <member name="F:Quantum.Prototypes.ViewPrototype.Current">
+            <summary>
+            The EntityView asset to be referenced by the View component.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.ViewPrototype.Materialize(Quantum.Core.FrameBase,Quantum.View@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            Applies the prototype's fields to the actual component.
+            </summary>
+        </member>
         <member name="T:Quantum.Prototypes.Joint2DConfig">
+            <summary>
+            Defines a prototype of a <see cref="T:Quantum.Physics2D.Joint"/> struct of any type.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.Joint2DConfig.#ctor">
             <summary>
             Defines a prototype of a <see cref="T:Quantum.Physics2D.Joint"/> struct of any type.
             </summary>
@@ -7726,6 +7781,11 @@
             <inheritdoc cref="M:Quantum.Prototypes.Joint2DConfig.CreateJoint(Quantum.Core.FrameBase,Quantum.EntityRef,Quantum.EntityRef)"/>
         </member>
         <member name="T:Quantum.Prototypes.Joint3DConfig">
+            <summary>
+            Defines a prototype of a <see cref="T:Quantum.Physics3D.Joint3D"/> struct of any type.
+            </summary>
+        </member>
+        <member name="M:Quantum.Prototypes.Joint3DConfig.#ctor">
             <summary>
             Defines a prototype of a <see cref="T:Quantum.Physics3D.Joint3D"/> struct of any type.
             </summary>
@@ -8335,7 +8395,7 @@
         </member>
         <member name="P:Quantum.ComponentFilter`1.UseCulling">
             <summary>
-            (Prediction-) Culled entities are removed from the filter.
+            Include culled entities in the filter.
             </summary>
         </member>
         <member name="M:Quantum.ComponentFilter`1.Next(Quantum.EntityRef@,`0@)">
@@ -9655,13 +9715,6 @@
             <param name="ptr">The pointer to the <see cref="T:Quantum.EntityRef"/>.</param>
             <param name="stream">The <see cref="T:Quantum.FrameSerializer"/> instance into which the struct will be serialized.</param>
         </member>
-        <member name="M:Quantum.EntityRef.Print(System.Void*,Quantum.FramePrinter)">
-            <summary>
-            Prints the REPLACE using a <see cref="T:Quantum.FramePrinter"/>.
-            </summary>
-            <param name="ptr">Pointer to REPLACE instance</param>
-            <param name="printer">Printer object</param>
-        </member>
         <member name="M:Quantum.EntityRef.ToString">
             <summary>
             Converts the numeric value of this instance to its equivalent string representation.
@@ -9675,6 +9728,17 @@
             <param name="str">String</param>
             <param name="result">Resulting EntityRef</param>
             <returns><see langword="true"/> if the entity ref was successfully parsed</returns>
+        </member>
+        <member name="M:Quantum.EntityRef.GetName(Quantum.Core.FrameBase)">
+            <summary>
+            Converts entity to a name, used throughout the editor. Can be overriden with <see cref="P:Quantum.EntityRef.GetEntityNameUser"/> delegate.
+            </summary>
+        </member>
+        <member name="P:Quantum.EntityRef.GetEntityNameUser">
+            <summary>
+            A delegate invoked in <see cref="M:Quantum.EntityRef.GetName(Quantum.Core.FrameBase)"/>. If there is no frame available, the frame delegate parameter will be passed as null.
+            If the delegate is null or returns null, the result of <see cref="M:Quantum.EntityRef.ToString"/> will be returned.
+            </summary>
         </member>
         <member name="T:Quantum.EventFlags">
             <summary>
@@ -11386,7 +11450,7 @@
             <inheritdoc cref="M:Quantum.QString.CompareOrdinal``1(``0@,System.Byte*,System.UInt16)"/>
         </member>
         <member name="M:Quantum.QStringUtf8.CompareOrdinal``1(``0@,System.String)">
-            <inheritdoc cref="M:Quantum.QString.CompareOrdinal``1(``0@,System.String)"/>
+            <inheritdoc cref="M:Quantum.QString.CompareOrdinal``1(``0@,System.Byte*,System.UInt16)"/>
         </member>
         <member name="M:Quantum.QStringUtf8.CompareOrdinal``2(``0@,``1@)">
             <inheritdoc cref="M:Quantum.QString.CompareOrdinal``2(``0@,``1@)"/>
@@ -12371,6 +12435,14 @@
             The capacity of the buffer.
             </summary>
         </member>
+        <member name="F:Quantum.MeshUnmanagedTrianglesRef.IsEditing">
+            <summary>
+            If the Mesh collider is currently being edited.
+            </summary>
+            <remarks>
+            Mesh colliders cannot be enabled while being edited.
+            </remarks>
+        </member>
         <member name="P:Quantum.MeshUnmanagedTrianglesRef.Count">
             <summary>
             Obsolete. Use <see cref="F:Quantum.MeshUnmanagedTrianglesRef.UsedCount"/> instead.
@@ -12381,7 +12453,7 @@
             Obsolete. Use overload that takes 'capacity' parameter instead. See <see cref="T:Quantum.MeshUnmanagedTrianglesRef"/>.
             </summary>
         </member>
-        <member name="M:Quantum.MeshUnmanagedTrianglesRef.#ctor(Quantum.UnmanagedTriangleArray,System.Int32,System.Int32,System.Int32)">
+        <member name="M:Quantum.MeshUnmanagedTrianglesRef.#ctor(Quantum.UnmanagedTriangleArray,System.Int32,System.Int32,System.Int32,System.Boolean)">
             <summary>
             Creates a new instance of <see cref="T:Quantum.MeshUnmanagedTrianglesRef"/>.
             </summary>
@@ -12389,6 +12461,7 @@
             <param name="first">The index of the first triangle of this mesh in the buffer.</param>
             <param name="capacity">The capacity of the buffer.</param>
             <param name="usedCount">The amount of triangles used.</param>
+            <param name="isEditing">If the mesh is being edited and therefore cannot be injected in the physics engine.</param>
         </member>
         <member name="M:Quantum.MeshUnmanagedTrianglesRef.#ctor">
             <summary>
@@ -17458,6 +17531,13 @@
             The collision penetration in the <see cref="P:Quantum.CollisionInfo2D.ContactNormal"/> direction.
             </summary>
         </member>
+        <member name="P:Quantum.CollisionInfo2D.TimeOfImpact">
+            <summary>
+            The time along the frame delta-time when the collision occurred.
+            If CCD was not performed or the objects were already colliding at the beginning of the delta-time, this value is 0.
+            Otherwise, it ranges from 0 to delta-time.
+            </summary>
+        </member>
         <member name="P:Quantum.CollisionInfo2D.IsStatic">
             <summary>
             If the <see cref="P:Quantum.CollisionInfo2D.Entity"/> is touching a static collider.
@@ -17822,11 +17902,13 @@
         <member name="F:Quantum.Shape2D.LocalTransform">
             <summary>
             The offset position and rotation of the shape related to the entity's transform.
+            This is the same value as the <see cref="F:Quantum.Shape2D.Centroid"/> field.
             </summary>
         </member>
         <member name="F:Quantum.Shape2D.Centroid">
             <summary>
             The offset position of the shape center related to the entity's position.
+            This is the same value as the <see cref="F:Quantum.Shape2D.LocalTransform">LocalTransform.Position</see> field.
             </summary>
         </member>
         <member name="F:Quantum.Shape2D.Compound">
@@ -18032,6 +18114,11 @@
             Creates a <see cref="T:Quantum.Shape2D"/> using the all the data set in the <see cref="T:Quantum.Shape2DConfig"/>.
             </summary>
             <param name="f">The current frame.</param>
+        </member>
+        <member name="M:Quantum.Shape2DConfig.Materialize(Quantum.Core.FrameBase,Quantum.Shape2D@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            <see cref="M:Quantum.Shape2DConfig.CreateShape(Quantum.Core.FrameBase)"/>
+            </summary>
         </member>
         <member name="T:Quantum.Shape2DConfig.CompoundShapeData2D">
             <summary>
@@ -21268,6 +21355,13 @@
             The collision penetration in the <see cref="P:Quantum.CollisionInfo3D.ContactNormal"/> direction.
             </summary>
         </member>
+        <member name="P:Quantum.CollisionInfo3D.TimeOfImpact">
+            <summary>
+            The time along the frame delta-time when the collision occurred.
+            If CCD was not performed or the objects were already colliding at the beginning of the delta-time, this value is 0.
+            Otherwise, it ranges from 0 to delta-time.
+            </summary>
+        </member>
         <member name="P:Quantum.CollisionInfo3D.IsStatic">
             <summary>
             If the <see cref="P:Quantum.CollisionInfo3D.Entity"/> is touching a static collider.
@@ -21576,11 +21670,13 @@
         <member name="F:Quantum.Shape3D.LocalTransform">
             <summary>
             The offset position and rotation of the shape related to the entity's transform.
+            This is the same value as the <see cref="F:Quantum.Shape3D.Centroid"/> field.
             </summary>
         </member>
         <member name="F:Quantum.Shape3D.Centroid">
             <summary>
             The offset position of the shape center related to the entity's position.
+            This is the same value as the <see cref="F:Quantum.Shape3D.LocalTransform">LocalTransform.Position</see> field.
             </summary>
         </member>
         <member name="F:Quantum.Shape3D.Compound">
@@ -21753,6 +21849,11 @@
             Creates a <see cref="T:Quantum.Shape3D"/> using the all the data set in the <see cref="T:Quantum.Shape3DConfig"/>.
             </summary>
             <param name="f">The current frame.</param>
+        </member>
+        <member name="M:Quantum.Shape3DConfig.Materialize(Quantum.Core.FrameBase,Quantum.Shape3D@,Quantum.PrototypeMaterializationContext@)">
+            <summary>
+            <see cref="M:Quantum.Shape3DConfig.CreateShape(Quantum.Core.FrameBase)"/>
+            </summary>
         </member>
         <member name="T:Quantum.Shape3DConfig.CompoundShapeData3D">
             <summary>
@@ -21980,21 +22081,6 @@
             the simulation is running in a single thread.
             </summary>
         </member>
-        <member name="T:Quantum.PhysicsCommon.PhysicsNativeLib">
-            <summary>
-            Defines if the physics simulation should to use native compiled libraries for supported platforms. 
-            </summary>
-        </member>
-        <member name="F:Quantum.PhysicsCommon.PhysicsNativeLib.Disabled">
-            <summary>
-            Disable the use of native physics libraries by the physics systems.
-            </summary>
-        </member>
-        <member name="F:Quantum.PhysicsCommon.PhysicsNativeLib.Auto">
-            <summary>
-            Enable the use of native physics libraries by the physics systems on the supported platforms.
-            </summary>
-        </member>
         <member name="T:Quantum.PhysicsCommon.Config">
             <summary>
             Global physics settings which are part of the <see cref="!:SimulationConfig"/>.
@@ -22009,11 +22095,6 @@
         <member name="F:Quantum.PhysicsCommon.Config.SolverType">
             <summary>
             Defines which solver algorithm will be used by the Physics Engines.
-            </summary>
-        </member>
-        <member name="F:Quantum.PhysicsCommon.Config.UsePhysicsNativeLib">
-            <summary>
-            Obsolete option that enable the use of native physics libraries. The property has no function for SDK 3.0.
             </summary>
         </member>
         <member name="F:Quantum.PhysicsCommon.Config.SolverIterations">
@@ -23124,6 +23205,9 @@
             Specifies that the field represents binary data.
             </summary>
         </member>
+        <member name="M:Quantum.BinaryDataAttribute.#ctor">
+            <summary/>
+        </member>
         <member name="T:Quantum.BitSetAttribute">
             <summary>
             Represents an attribute that specifies the number of bits in a bit set.
@@ -23150,16 +23234,15 @@
             The default order of the attribute.
             </summary>
         </member>
-        <member name="M:Quantum.DecoratingPropertyAttribute.#ctor">
+        <member name="M:Quantum.DecoratingPropertyAttribute.#ctor(System.Boolean)">
             <summary>
             Initializes a new instance with the default order.
             </summary>
         </member>
-        <member name="M:Quantum.DecoratingPropertyAttribute.#ctor(System.Int32)">
+        <member name="M:Quantum.DecoratingPropertyAttribute.#ctor(System.Int32,System.Boolean)">
             <summary>
             Initializes a new instance with the specified order.
             </summary>
-            <param name="order"></param>
         </member>
         <member name="T:Quantum.DisplayAsEnumAttribute">
             <summary>
@@ -23322,6 +23405,9 @@
             <summary>
             A base class for property attributes that are used to draw properties in the inspector.
             </summary>
+        </member>
+        <member name="M:Quantum.DrawerPropertyAttribute.#ctor(System.Boolean)">
+            <summary/>
         </member>
         <member name="T:Quantum.DrawIfMode">
             <summary>
@@ -23549,6 +23635,9 @@
             Specifies that the integer array field should be drawn as a layer matrix in the inspector.
             </summary>
         </member>
+        <member name="M:Quantum.LayerMatrixAttribute.#ctor">
+            <summary />
+        </member>
         <member name="T:Quantum.MaxStringByteCountAttribute">
             <summary>
             Specifies that the string field should be drawn as a text field with a maximum byte count for given encoding.
@@ -23608,6 +23697,11 @@
             <param name="min">The minimum value of the range.</param>
             <param name="max">The maximum value of the range.</param>
         </member>
+        <member name="F:Quantum.RangeExAttribute.Values">
+            <summary>
+            Possible values.
+            </summary>
+        </member>
         <member name="T:Quantum.ReadOnlyAttribute">
             <summary>
             Attribute used to mark a field as read-only.
@@ -23622,6 +23716,9 @@
             <summary>
             Should the field be read-only in edit mode?
             </summary>
+        </member>
+        <member name="M:Quantum.ReadOnlyAttribute.#ctor">
+            <summary/>
         </member>
         <member name="T:Quantum.ScenePathAttribute">
             <summary>

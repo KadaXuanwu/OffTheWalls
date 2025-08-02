@@ -8,6 +8,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 286874
   packageName: Photon Quantum - Deterministic Game Engine
-  packageVersion: 3.0.4
+  packageVersion: 3.0.5
   assetPath: Assets/Photon/PhotonRealtime/Code/Photon.Realtime.asmdef
-  uploadId: 759798
+  uploadId: 774129

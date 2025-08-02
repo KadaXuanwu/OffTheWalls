@@ -440,13 +440,18 @@ namespace Quantum {
     /// MultiClientPlayer class uses this to signal a player quits.
     /// </summary>
     /// <param name="player">Player class</param>
-    private void DestroyPlayer(QuantumMultiClientPlayer player) {
+    private async void DestroyPlayer(QuantumMultiClientPlayer player) {
       if (player.MainPlayer == null) {
-        // This will trigger OnRunnerShutdown() eventually, removing all local players as well
-        player.Runner?.Shutdown();
+        // This will trigger OnRunnerShutdown() eventually, removing all local players as well.
+        // Using async shutdown to wait for disconnect callback to complete disconnecting gracefully.
+        if (player.Runner) {
+          await player.Runner.ShutdownAsync();
+        }
       } else {
         // Only destroy this local player
-        player.Runner?.Game.RemovePlayer(player.PlayerSlot);
+        if (player.Runner) {
+          player.Runner.Game.RemovePlayer(player.PlayerSlot);
+        }
         player.Destroy();
         _players.Remove(player);
         CreatePlayerBtn.interactable = _players.Count < PlayerCount;

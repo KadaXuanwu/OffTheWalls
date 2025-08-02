@@ -15,7 +15,7 @@ namespace Quantum {
     /// <summary>
     /// Access the runner id of it's runner or null if it does not exist.
     /// </summary>
-    public string RunnerId => Runner?.Id;
+    public string RunnerId => Runner ? Runner.Id : null;
     /// <summary>
     /// The Input object to toggle on or off.
     /// </summary>
@@ -156,7 +156,9 @@ namespace Quantum {
         _evu = null;
       }
 
-      Destroy(gameObject);
+      if (this != null) {
+        Destroy(gameObject);
+      }
     }
 
     private void OnInputToggle(bool isEnabled) {

@@ -465,7 +465,9 @@ namespace Quantum {
       OnInitialize();
 
       for (int i = 0; i < _viewComponents.Length; i++) {
-        _viewComponents[i].Initialize(contexts);
+        if (_viewComponents[i].IsInitialized == false) {
+          _viewComponents[i].Initialize(contexts);
+        }
       }
     }
 

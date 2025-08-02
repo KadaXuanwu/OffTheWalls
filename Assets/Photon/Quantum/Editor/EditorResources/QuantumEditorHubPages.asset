@@ -1214,3 +1214,23 @@ MonoBehaviour:
       Asset: {fileID: 0}
       Id: 
       StepElements: []
+    - Text: Assembly version
+      Subtext: 
+      WidgetMode:
+        Value: AssemblyVersion
+      AutoComplete:
+        Value: None
+      Hide:
+        Value: TypeIsNotValid
+      Scene: 
+      AddSceneToTop: 0
+      Icon: {fileID: 0}
+      StatusIcon: {fileID: 0}
+      StartPlayMode: 0
+      Url: 
+      Type:
+        ScriptableObject: 
+        Class: BotSDKData
+      Asset: {fileID: 0}
+      Id: 
+      StepElements: []

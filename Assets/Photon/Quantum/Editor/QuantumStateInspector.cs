@@ -1,4 +1,4 @@
-namespace Quantum.Editor {
+﻿namespace Quantum.Editor {
   using System;
   using System.Collections.Generic;
   using System.Collections.ObjectModel;
@@ -35,7 +35,6 @@ namespace Quantum.Editor {
     [NonSerialized] private QuantumRunner _currentRunner;
     [NonSerialized] private bool _needsReload;
     [NonSerialized] private bool _needsSelectionSync;
-    [NonSerialized] private string _buildEntityRunnerId;
     [NonSerialized] private List<EntityRef> _entityRefBuffer = new List<EntityRef>();
     [NonSerialized] private CommandQueue _pendingDebugCommands = new CommandQueue();
     [NonSerialized] private List<Tuple<string, EntityRef>> _pendingSelection = new List<Tuple<string, EntityRef>>();
@@ -77,7 +76,6 @@ namespace Quantum.Editor {
       _runnersTreeView = new RunnersTreeView(_runnersTreeViewState, _model);
       _runnersTreeView.TreeSelectionChanged += (sender, selection) => {
         _componentsBeingAdded = null;
-        _buildEntityRunnerId = null;
         _runnersTreeView.SetForceShowItems(null);
         if (_syncWithActiveGameObject) {
           SelectCorrespondingGameObjects(GetEntitiesByTreeId(selection));
@@ -93,6 +91,7 @@ namespace Quantum.Editor {
       _runnersTreeView.Reload();
       
       DebugCommand.CommandExecuted       -= CommandExecuted;
+      DebugCommand.CommandExecuted       += CommandExecuted;
       Selection.selectionChanged         -= DeferredSyncWithSelection;
       Selection.selectionChanged         += DeferredSyncWithSelection;
       EditorApplication.hierarchyChanged -= DeferredSyncWithSelection;
@@ -112,7 +111,16 @@ namespace Quantum.Editor {
         Func<RunnersTreeViewItemBase, bool> runnerExistsDebug = (n) => DebugCommand.IsEnabled && FindRunnerById(n.RunnerModel.Id);
 
         _runnersTreeView.RunnerContextMenu = QuantumEditorGUI.BuildMenu<RunnerTreeViewItem>()
-          .AddItem("Create Entity...", (node) => _buildEntityRunnerId = node.State.Id, runnerExistsDebug)
+          .AddItem("Create Entity...", (node) => {
+            var runner = FindRunnerById(node.State.Id);
+            if (!runner) {
+              return;
+            }
+
+            var prototype = AssetObject.Create<EntityPrototype>();
+            prototype.Container = ComponentPrototypeSet.FromArray(Array.Empty<ComponentPrototype>());
+            CommandEnqueue(runner, DebugCommand.CreateMaterializePayload(EntityRef.None, prototype, runner.Game.AssetSerializer));
+          }, runnerExistsDebug)
           .AddItem("Save Dump (Small)", (node) => DumpFrame(FindRunnerById(node.State.Id), true), runnerExists)
           .AddItem("Save Dump (Full)", (node) => DumpFrame(FindRunnerById(node.State.Id), false), runnerExists)
           .AddItem("Remove", (node) => {
@@ -234,9 +242,7 @@ namespace Quantum.Editor {
         using (new GUILayout.HorizontalScope(skin.inspectorBackground))
         using (var scroll = new EditorGUILayout.ScrollViewScope(_inspectorScroll)) {
           _inspectorScroll = scroll.scrollPosition;
-          if (!string.IsNullOrEmpty(_buildEntityRunnerId)) {
-            DrawBuildEntityGUI();
-          } else if (currentState == null) {
+          if (currentState == null) {
             if (_runnersTreeView.GetSelection().Any()) {
               using (EditorStyles.wordWrappedLabel.FontStyleScope(italic: true)) {
                 EditorGUILayout.LabelField("Not available. An active runner is required.", EditorStyles.wordWrappedLabel);
@@ -440,7 +446,7 @@ namespace Quantum.Editor {
           using (new GUILayout.HorizontalScope()) {
             using (new EditorGUI.DisabledScope(runner == null)) {
               if (GUILayout.Button("OK")) {
-                CommandEnqueue(runner, DebugCommand.CreateMaterializePayload(entity, QuantumEditorUtility.FinishPendingEntityPrototype(), runner.Game.AssetSerializer));
+                CommandEnqueue(runner, DebugCommand.CreateMaterializePayload(entity, QuantumEditorUtility.FinishPendingEntityPrototype(_componentsBeingAdded), runner.Game.AssetSerializer));
                 _componentsBeingAdded = null;
               }
             }
@@ -451,31 +457,7 @@ namespace Quantum.Editor {
         }
       }
     }
-
-    private void DrawBuildEntityGUI() {
-      var runner = FindRunnerById(_buildEntityRunnerId);
-      if (runner == null) {
-        _buildEntityRunnerId = null;
-        Repaint();
-      } else {
-        using (new QuantumEditorGUI.HierarchyModeScope(true))
-        using (new QuantumEditorGUI.BoxScope(null)) {
-          QuantumEditorGUI.Inspector(QuantumEditorUtility.GetPendingEntityPrototypeRoot(), skipRoot: true);
-          using (new GUILayout.HorizontalScope()) {
-            using (new EditorGUI.DisabledScope(runner == null)) {
-              if (GUILayout.Button("OK")) {
-                CommandEnqueue(runner, DebugCommand.CreateMaterializePayload(EntityRef.None, QuantumEditorUtility.FinishPendingEntityPrototype(), runner.Game.AssetSerializer));
-                _buildEntityRunnerId = null;
-              }
-            }
-            if (GUILayout.Button("Cancel")) {
-              _buildEntityRunnerId = null;
-            }
-          }
-        }
-      }
-    }
-
+    
     private void DrawEntitiesDropdown() {
       var dropdownRect = EditorGUILayout.GetControlRect(false, 16, EditorStyles.toolbarPopup, GUILayout.MaxWidth(110));
       if (EditorGUI.DropdownButton(dropdownRect, new GUIContent("Entities Options"), FocusType.Keyboard, EditorStyles.toolbarPopup)) {
@@ -693,6 +675,7 @@ namespace Quantum.Editor {
         runnerState.ShowDisabledSystems = _showDisabledSystems;
         runnerState.SortSystemsAlphabetically = _sortSystemsAlphabetically;
         runnerState.UseVerifiedFrame = UseVerifiedFrame(runner);
+        runnerState.IsVerified = frame.IsVerified;
 
         // always inspect runner and globals
         runnerState.RunnerInspectorState.FromRunner(runner, runner.Session, frame);
@@ -782,7 +765,6 @@ namespace Quantum.Editor {
     private unsafe struct SystemState {
       public int InspectorId; 
       public int RuntimeIndex;
-      [SerializableType(WarnIfNoPreserveAttribute = true)]
       public SerializableType<SystemBase> Type;
       public bool IsEnabled;
       public int Depth;
@@ -957,6 +939,7 @@ namespace Quantum.Editor {
       public bool ShowDisabledSystems;
       public bool SortSystemsAlphabetically;
       public bool UseVerifiedFrame;
+      public bool IsVerified;
 
       public QuantumSimulationObjectInspectorState DynamicDBInspectorState     = new QuantumSimulationObjectInspectorState();
       public QuantumSimulationObjectInspectorState EntitiesInspectorState      = new QuantumSimulationObjectInspectorState();
@@ -1141,7 +1124,6 @@ namespace Quantum.Editor {
 
     private sealed class SystemTreeViewItem : RunnersTreeViewItemBase {
       public int StateIndex;
-      [SerializableType(WarnIfNoPreserveAttribute = true)]
       public SerializableType<SystemBase> Type;
       public int RuntimeIndex;
       public bool IsEnabled;
@@ -1405,7 +1387,12 @@ namespace Quantum.Editor {
                 if (state.IsPending) {
                   entity.displayName = $"<pending>";
                 } else {
-                  entity.displayName = state.Entity.ToString();
+                  FrameBase frame = null;
+                  var owner = FindRunnerById(root.State.Id);
+                  if (owner) {
+                    frame = root.State.IsVerified ? owner.Game?.Frames?.Verified : owner.Game?.Frames?.Predicted;
+                  }
+                  entity.displayName = state.Entity.GetName(frame);
                 }
               }
 
